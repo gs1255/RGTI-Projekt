@@ -1,5 +1,6 @@
 //Animation variable
-var cubeRotation = 0.0;
+var xRotation = 0.0;
+var yRotation = 0.0;
 
 
 function main() {
@@ -12,6 +13,50 @@ function main() {
     alert("Unable to initialize WebGL. Your browser or machine may not support it.");
     return;
   }
+
+  canvas.onclick = function() {
+    canvas.requestPointerLock();
+    document.addEventListener("mousemove", updatePosition, false);
+  }
+
+  var xMovement = document.getElementById('xMovement');
+  var yMovement = document.getElementById('yMovement');
+
+  function updatePosition(e) {
+    xRotation += e.movementX/500;
+    yRotation += e.movementY/500;
+    xMovement = document.getElementById('xMovement');
+    yMovement = document.getElementById('yMovement');
+    xMovement.textContent = "X: " + xRotation;
+    yMovement.textContent = "Y: " + yRotation;
+  }
+
+  // Vertex shader program
+  const vsSource =
+  `
+  attribute vec4 aVertexPosition;
+  attribute vec4 aVertexColor;
+
+  uniform mat4 uModelViewMatrix;
+  uniform mat4 uProjectionMatrix;
+
+  varying lowp vec4 vColor;
+
+  void main() {
+    gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+    vColor = aVertexColor;
+  }
+  `;
+
+  // Fragment shader program
+  const fsSource = 
+  `
+  varying lowp vec4 vColor;
+
+  void main(void) {
+    gl_FragColor = vColor;
+  }
+  `;
 
   // Create shaders
   const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
@@ -45,35 +90,6 @@ function main() {
   }
   requestAnimationFrame(render);
 }
-
-
-// Vertex shader program
-const vsSource =
-  `
-  attribute vec4 aVertexPosition;
-  attribute vec4 aVertexColor;
-
-  uniform mat4 uModelViewMatrix;
-  uniform mat4 uProjectionMatrix;
-
-  varying lowp vec4 vColor;
-
-  void main() {
-    gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
-    vColor = aVertexColor;
-  }
-  `;
-
-
-// Fragment shader program
-const fsSource = 
-  `
-  varying lowp vec4 vColor;
-
-    void main(void) {
-      gl_FragColor = vColor;
-    }
-  `;
 
 
 // Initialize a shader program, so WebGL knows how to draw our data
@@ -131,42 +147,27 @@ function initBuffers(gl) {
 
   // Now create an array of positions for the square.
   const positions = [
-  // Front face
-  -1.0, -1.0,  1.0,
-   1.0, -1.0,  1.0,
-   1.0,  1.0,  1.0,
-  -1.0,  1.0,  1.0,
-  
-  // Back face
-  -1.0, -1.0, -1.0,
-  -1.0,  1.0, -1.0,
-   1.0,  1.0, -1.0,
-   1.0, -1.0, -1.0,
-  
-  // Top face
-  -1.0,  1.0, -1.0,
-  -1.0,  1.0,  1.0,
-   1.0,  1.0,  1.0,
-   1.0,  1.0, -1.0,
-  
-  // Bottom face
-  -1.0, -1.0, -1.0,
-   1.0, -1.0, -1.0,
-   1.0, -1.0,  1.0,
-  -1.0, -1.0,  1.0,
-  
-  // Right face
-   1.0, -1.0, -1.0,
-   1.0,  1.0, -1.0,
-   1.0,  1.0,  1.0,
-   1.0, -1.0,  1.0,
-  
-  // Left face
-  -1.0, -1.0, -1.0,
-  -1.0, -1.0,  1.0,
-  -1.0,  1.0,  1.0,
-  -1.0,  1.0, -1.0,
-];
+  // Top side
+  -1.0, 1.0, 0.0,
+  1.0, 1.0, 0.0,
+  1.0, 1.0, -50.0,
+  -1.0, 1.0, -50.0,
+  // Left side
+  -1.0, 1.0, 0.0,
+  -1.0, 1.0, -50.0,
+  -1.0, -1.0, -50.0,
+  -1.0, -1.0, 0.0,
+  // Bottom side
+  -1.0, -1.0, 0.0,
+  -1.0, -1.0, -50.0,
+  1.0, -1.0, -50.0,
+  1.0, -1.0, 0.0,
+  // Right side
+  1.0, -1.0, 0.0,
+  1.0, -1.0, -50.0,
+  1.0, 1.0, -50.0,
+  1.0, 1.0, 0.0,
+  ];
 
   // Now pass the list of positions into WebGL to build the
   // shape. We do this by creating a Float32Array from the
@@ -178,12 +179,10 @@ function initBuffers(gl) {
 
   // Create an array of colors
   const faceColors = [
-    [1.0,  1.0,  1.0,  1.0],    // Front face: white
-    [1.0,  0.0,  0.0,  1.0],    // Back face: red
-    [0.0,  1.0,  0.0,  1.0],    // Top face: green
+    [1.0,  1.0,  1.0,  1.0],    // Top face: white
+    [1.0,  0.0,  0.0,  1.0],    // Left face: red
     [0.0,  0.0,  1.0,  1.0],    // Bottom face: blue
     [1.0,  1.0,  0.0,  1.0],    // Right face: yellow
-    [1.0,  0.0,  1.0,  1.0],    // Left face: purple
   ];
 
   // Convert the array of colors into a table for all the vertices.
@@ -207,12 +206,10 @@ function initBuffers(gl) {
   // indices into the vertex array to specify each triangle's
   // position.
   const indices = [
-    0,  1,  2,      0,  2,  3,    // front
+    0,  1,  2,      0,  2,  3,    // top
     4,  5,  6,      4,  6,  7,    // back
     8,  9,  10,     8,  10, 11,   // top
     12, 13, 14,     12, 14, 15,   // bottom
-    16, 17, 18,     16, 18, 19,   // right
-    20, 21, 22,     20, 22, 23,   // left
   ];
 
   // Now send the element array to GL
@@ -246,7 +243,7 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
   const fieldOfView = 45 * Math.PI / 180;   // in radians
   const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
   const zNear = 0.1;
-  const zFar = 100.0;
+  const zFar = 30.0;
   const projectionMatrix = glMatrix.mat4.create();
 
   // note: glmatrix.js always has the first argument
@@ -263,17 +260,20 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
 
   // Now move the drawing position a bit to where we want to
   // start drawing the square.
-  glMatrix.mat4.translate(modelViewMatrix,     // destination matrix
-                 modelViewMatrix,     // matrix to translate
-                 [-0.0, 0.0, -6.0]);  // amount to translate
+  //glMatrix.mat4.translate(modelViewMatrix,     // destination matrix
+  //               modelViewMatrix,     // matrix to translate
+  //               [-0.0, 0.0, 0.0]);  // amount to translate
 
   //Rotate the cube
   glMatrix.mat4.rotate(modelViewMatrix,  // destination matrix
               modelViewMatrix,  // matrix to rotate
-              cubeRotation,   // amount to rotate in radians
-              [0, 0, 1]);       // axis to rotate around
+              xRotation,   // amount to rotate in radians
+              [0, 1, 0]);       // axis to rotate around
 
-  glMatrix.mat4.rotate(modelViewMatrix, modelViewMatrix, cubeRotation * .7, [0, 1, 0]);
+  glMatrix.mat4.rotate(modelViewMatrix,
+    modelViewMatrix,
+    yRotation,
+    [1, 0, 0]);
 
   // Tell WebGL how to pull out the positions from the position
   // buffer into the vertexPosition attribute.
@@ -333,14 +333,14 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
       modelViewMatrix);
 
   {
-    const vertexCount = 36;
+    const vertexCount = 24;
     const type = gl.UNSIGNED_SHORT;
     const offset = 0;
     gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
   }
 
   // Update rotation value
-  cubeRotation += deltaTime;
+  //cubeRotation += deltaTime;
 }
 
 
