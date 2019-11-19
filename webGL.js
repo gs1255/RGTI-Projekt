@@ -1,4 +1,4 @@
-//Animation variable
+// Game logic variables
 var xRotation = 0.0;
 var yRotation = 0.0;
 var mouseSensitivity = 10;
@@ -6,7 +6,14 @@ var speed = 0.1;
 var locationX = 0;
 var locationY = 0;
 var locationZ = 0;
+var konec = true;
 
+
+// Function for translating mouse movement to in-game movement
+function updatePosition(e) {
+  xRotation = adjustRotation(e.movementX, xRotation);
+  yRotation = adjustRotation(e.movementY, yRotation);
+}
 
 
 function main() {
@@ -19,60 +26,6 @@ function main() {
     alert("Unable to initialize WebGL. Your browser or machine may not support it.");
     return;
   }
-
-  canvas.onclick = function() {
-    canvas.requestPointerLock();
-    document.addEventListener("mousemove", updatePosition, false);
-  }
-
-  var xMovement = document.getElementById('xMovement');
-  var yMovement = document.getElementById('yMovement');
-
-  function adjustRotation(change, prev) {
-    var newRotation = prev + (change*mouseSensitivity)/5000;
-    if (newRotation >= Math.PI/2) {
-      newRotation = Math.PI/2;
-    }
-    if (newRotation <= -Math.PI/2) {
-      newRotation = -Math.PI/2;
-    }
-
-    return newRotation;
-  }
-
-  function updatePosition(e) {
-    xRotation = adjustRotation(e.movementX, xRotation);
-    yRotation = adjustRotation(e.movementY, yRotation);
-    xMovement.textContent = "X: " + xRotation;
-    yMovement.textContent = "Y: " + yRotation;
-  }
-
-  // Vertex shader program
-  const vsSource =
-  `
-  attribute vec4 aVertexPosition;
-  attribute vec4 aVertexColor;
-
-  uniform mat4 uModelViewMatrix;
-  uniform mat4 uProjectionMatrix;
-
-  varying lowp vec4 vColor;
-
-  void main() {
-    gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
-    vColor = aVertexColor;
-  }
-  `;
-
-  // Fragment shader program
-  const fsSource = 
-  `
-  varying lowp vec4 vColor;
-
-  void main(void) {
-    gl_FragColor = vColor;
-  }
-  `;
 
   // Create shaders
   const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
@@ -90,64 +43,29 @@ function main() {
     },
   };
 
+  // initialize buffers
   const buffers = initBuffers(gl);
 
-  // Animate
-  var then = 0;
-  // Draw the scene repeatedly
-  function render(now) {
-    now *= 0.001;  // convert to seconds
-    const deltaTime = now - then;
-    then = now;
-
-    drawScene(gl, programInfo, buffers, deltaTime);
-
-    requestAnimationFrame(render);
-  }
-  requestAnimationFrame(render);
-}
-
-
-// Initialize a shader program, so WebGL knows how to draw our data
-function initShaderProgram(gl, vsSource, fsSource) {
-  const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
-  const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
-
-  // Create the shader program
-  const shaderProgram = gl.createProgram();
-  gl.attachShader(shaderProgram, vertexShader);
-  gl.attachShader(shaderProgram, fragmentShader);
-  gl.linkProgram(shaderProgram);
-
-  // If creating the shader program failed, alert
-  if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-    alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
-    return null;
+  // Implement mouse tracking
+  canvas.onclick = function() {
+    canvas.requestPointerLock();
+    document.addEventListener("mousemove", updatePosition, false);
+    if (konec) {
+      konec = false;
+      render();
+    }
   }
 
-  return shaderProgram;
-}
 
+  // Animation function
+  function render() {
+    drawScene(gl, programInfo, buffers);
 
-// creates a shader of the given type, uploads the source and
-// compiles it.
-function loadShader(gl, type, source) {
-  const shader = gl.createShader(type);
-
-  // Send the source to the shader object
-  gl.shaderSource(shader, source);
-
-  // Compile the shader program
-  gl.compileShader(shader);
-
-  // See if it compiled successfully
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    alert('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
-    gl.deleteShader(shader);
-    return null;
+    if (!konec) {
+      requestAnimationFrame(render);
+    }
   }
 
-  return shader;
 }
 
 
@@ -166,23 +84,65 @@ function initBuffers(gl) {
   // Top side
   -1.0, 1.0, 0.0,
   1.0, 1.0, 0.0,
-  1.0, 1.0, -50.0,
-  -1.0, 1.0, -50.0,
+  1.0, 1.0, -30.0,
+  -1.0, 1.0, -30.0,
   // Left side
   -1.0, 1.0, 0.0,
-  -1.0, 1.0, -50.0,
-  -1.0, -1.0, -50.0,
+  -1.0, 1.0, -30.0,
+  -1.0, -1.0, -30.0,
   -1.0, -1.0, 0.0,
   // Bottom side
   -1.0, -1.0, 0.0,
-  -1.0, -1.0, -50.0,
-  1.0, -1.0, -50.0,
+  -1.0, -1.0, -30.0,
+  1.0, -1.0, -30.0,
   1.0, -1.0, 0.0,
   // Right side
   1.0, -1.0, 0.0,
-  1.0, -1.0, -50.0,
-  1.0, 1.0, -50.0,
+  1.0, -1.0, -30.0,
+  1.0, 1.0, -30.0,
   1.0, 1.0, 0.0,
+
+  // Top side
+  -1.0, 1.0, -30.0,
+  1.0, 1.0, -30.0,
+  1.0, 1.0, -60.0,
+  -1.0, 1.0, -60.0,
+  // Left side
+  -1.0, 1.0, -30.0,
+  -1.0, 1.0, -60.0,
+  -1.0, -1.0, -60.0,
+  -1.0, -1.0, -30.0,
+  // Bottom side
+  -1.0, -1.0, -30.0,
+  -1.0, -1.0, -60.0,
+  1.0, -1.0, -60.0,
+  1.0, -1.0, -30.0,
+  // Right side
+  1.0, -1.0, -30.0,
+  1.0, -1.0, -60.0,
+  1.0, 1.0, -60.0,
+  1.0, 1.0, -30.0,
+
+  // Top side
+  -1.0, 1.0, -60.0,
+  1.0, 1.0, -60.0,
+  1.0, 1.0, -90.0,
+  -1.0, 1.0, -90.0,
+  // Left side
+  -1.0, 1.0, -60.0,
+  -1.0, 1.0, -90.0,
+  -1.0, -1.0, -90.0,
+  -1.0, -1.0, -60.0,
+  // Bottom side
+  -1.0, -1.0, -60.0,
+  -1.0, -1.0, -90.0,
+  1.0, -1.0, -90.0,
+  1.0, -1.0, -60.0,
+  // Right side
+  1.0, -1.0, -60.0,
+  1.0, -1.0, -90.0,
+  1.0, 1.0, -90.0,
+  1.0, 1.0, -60.0,
   ];
 
   // Now pass the list of positions into WebGL to build the
@@ -195,6 +155,16 @@ function initBuffers(gl) {
 
   // Create an array of colors
   const faceColors = [
+    [1.0,  1.0,  1.0,  1.0],    // Top face: white
+    [1.0,  0.0,  0.0,  1.0],    // Left face: red
+    [0.0,  0.0,  1.0,  1.0],    // Bottom face: blue
+    [1.0,  1.0,  0.0,  1.0],    // Right face: yellow
+
+    [0.0,  0.0,  1.0,  1.0],    // Bottom face: blue
+    [1.0,  1.0,  0.0,  1.0],    // Right face: yellow
+    [1.0,  1.0,  1.0,  1.0],    // Top face: white
+    [1.0,  0.0,  0.0,  1.0],    // Left face: red
+
     [1.0,  1.0,  1.0,  1.0],    // Top face: white
     [1.0,  0.0,  0.0,  1.0],    // Left face: red
     [0.0,  0.0,  1.0,  1.0],    // Bottom face: blue
@@ -226,6 +196,16 @@ function initBuffers(gl) {
     4,  5,  6,      4,  6,  7,    // back
     8,  9,  10,     8,  10, 11,   // top
     12, 13, 14,     12, 14, 15,   // bottom
+
+    16, 17, 18,     16, 18, 19,    // top
+    20, 21, 22,     20, 22, 23,    // top
+    24, 25, 26,     24, 26, 27,    // top
+    28, 29, 30,     28, 30, 31,    // top
+
+    32, 33, 34,     32, 34, 35,    // top
+    36, 37, 38,     36, 38, 39,    // top
+    40, 41, 42,     40, 42, 43,    // top
+    44, 45, 46,     44, 46, 47,    // top
   ];
 
   // Now send the element array to GL
@@ -241,7 +221,7 @@ function initBuffers(gl) {
 
 
 // Finally draws the simple scene
-function drawScene(gl, programInfo, buffers, deltaTime) {
+function drawScene(gl, programInfo, buffers) {
   gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
   gl.clearDepth(1.0);                 // Clear everything
   gl.enable(gl.DEPTH_TEST);           // Enable depth testing
@@ -259,7 +239,7 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
   const fieldOfView = 60 * Math.PI / 180;   // in radians
   const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
   const zNear = 0.1;
-  const zFar = 100.0;
+  const zFar = 30.0;
   const projectionMatrix = glMatrix.mat4.create();
 
   // note: glmatrix.js always has the first argument
@@ -299,7 +279,7 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
   // Tell WebGL how to pull out the positions from the position
   // buffer into the vertexPosition attribute.
   {
-    const numComponents = 3;  // pull out 2 values per iteration
+    const numComponents = 3;  // pull out 3 values per iteration
     const type = gl.FLOAT;    // the data in the buffer is 32bit floats
     const normalize = false;  // don't normalize
     const stride = 0;         // how many bytes to get from one set of values to the next
@@ -354,24 +334,25 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
       modelViewMatrix);
 
   {
-    const vertexCount = 24;
+    const vertexCount = 72;
     const type = gl.UNSIGNED_SHORT;
     const offset = 0;
     gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
   }
 
-  // Update rotation value
-  //cubeRotation += deltaTime;
-
   // Update location
   locationX -= Math.sin(xRotation)*Math.cos(yRotation)*speed;
   locationY += Math.sin(yRotation)*Math.cos(xRotation)*speed;
   locationZ += Math.abs(Math.cos(xRotation)*Math.cos(yRotation)*speed);
-
-  //locationZ += speed;
-  //if (locationZ > 50.0) {
-  //  locationZ = 0;
-  //}
+  if (locationZ >= 60) {
+    locationZ = 0;
+  }
+  if (locationX >= 1 || locationX <= -1 || locationY >= 1 || locationY <= -1) {
+    konec = true;
+    locationX = 0;
+    locationY = 0;
+    locationZ = 0;
+  }
 
 }
 
