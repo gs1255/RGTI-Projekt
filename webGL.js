@@ -2,6 +2,11 @@
 var xRotation = 0.0;
 var yRotation = 0.0;
 var mouseSensitivity = 10;
+var speed = 0.1;
+var locationX = 0;
+var locationY = 0;
+var locationZ = 0;
+
 
 
 function main() {
@@ -251,10 +256,10 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
   // ratio that matches the display size of the canvas
   // and we only want to see objects between 0.1 units
   // and 100 units away from the camera.
-  const fieldOfView = 45 * Math.PI / 180;   // in radians
+  const fieldOfView = 60 * Math.PI / 180;   // in radians
   const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
   const zNear = 0.1;
-  const zFar = 30.0;
+  const zFar = 100.0;
   const projectionMatrix = glMatrix.mat4.create();
 
   // note: glmatrix.js always has the first argument
@@ -273,7 +278,7 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
   // start drawing the square.
   //glMatrix.mat4.translate(modelViewMatrix,     // destination matrix
   //               modelViewMatrix,     // matrix to translate
-  //               [-0.0, 0.0, 0.0]);  // amount to translate
+  //               [0.0, 0.0, 0.0]);  // amount to translate
 
   //Rotate the cube
   glMatrix.mat4.rotate(modelViewMatrix,  // destination matrix
@@ -285,6 +290,11 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
     modelViewMatrix,
     yRotation,
     [1, 0, 0]);
+
+  // Premikanje po tunelu
+  glMatrix.mat4.translate(modelViewMatrix,     // destination matrix
+                 modelViewMatrix,     // matrix to translate
+                 [locationX, locationY, locationZ]);  // amount to translate
 
   // Tell WebGL how to pull out the positions from the position
   // buffer into the vertexPosition attribute.
@@ -352,6 +362,17 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
 
   // Update rotation value
   //cubeRotation += deltaTime;
+
+  // Update location
+  locationX -= Math.sin(xRotation)*Math.cos(yRotation)*speed;
+  locationY += Math.sin(yRotation)*Math.cos(xRotation)*speed;
+  locationZ += Math.abs(Math.cos(xRotation)*Math.cos(yRotation)*speed);
+
+  //locationZ += speed;
+  //if (locationZ > 50.0) {
+  //  locationZ = 0;
+  //}
+
 }
 
 
