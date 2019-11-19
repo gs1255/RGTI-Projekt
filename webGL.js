@@ -1,6 +1,7 @@
 //Animation variable
 var xRotation = 0.0;
 var yRotation = 0.0;
+var mouseSensitivity = 10;
 
 
 function main() {
@@ -22,11 +23,21 @@ function main() {
   var xMovement = document.getElementById('xMovement');
   var yMovement = document.getElementById('yMovement');
 
+  function adjustRotation(change, prev) {
+    var newRotation = prev + (change*mouseSensitivity)/5000;
+    if (newRotation >= Math.PI/2) {
+      newRotation = Math.PI/2;
+    }
+    if (newRotation <= -Math.PI/2) {
+      newRotation = -Math.PI/2;
+    }
+
+    return newRotation;
+  }
+
   function updatePosition(e) {
-    xRotation += e.movementX/500;
-    yRotation += e.movementY/500;
-    xMovement = document.getElementById('xMovement');
-    yMovement = document.getElementById('yMovement');
+    xRotation = adjustRotation(e.movementX, xRotation);
+    yRotation = adjustRotation(e.movementY, yRotation);
     xMovement.textContent = "X: " + xRotation;
     yMovement.textContent = "Y: " + yRotation;
   }
