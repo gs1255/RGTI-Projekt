@@ -1,3 +1,76 @@
+const radians = Math.PI/180;
+
+const xPoints = [
+  0.0,
+  Math.sin(22.5*radians),
+  Math.sin(45*radians),
+  Math.sin(67.5*radians),
+  Math.sin(90*radians),
+  Math.sin(112.5*radians),
+  Math.sin(135*radians),
+  Math.sin(157.5*radians),
+  Math.sin(180*radians),
+  Math.sin(202.5*radians),
+  Math.sin(225*radians),
+  Math.sin(247.5*radians),
+  Math.sin(270*radians),
+  Math.sin(292.5*radians),
+  Math.sin(315*radians),
+  Math.sin(337.5*radians),
+];
+
+const yPoints = [
+  1.0,
+  Math.cos(22.5*radians),
+  Math.cos(45*radians),
+  Math.cos(67.5*radians),
+  Math.cos(90*radians),
+  Math.cos(112.5*radians),
+  Math.cos(135*radians),
+  Math.cos(157.5*radians),
+  Math.cos(180*radians),
+  Math.cos(202.5*radians),
+  Math.cos(225*radians),
+  Math.cos(247.5*radians),
+  Math.cos(270*radians),
+  Math.cos(292.5*radians),
+  Math.cos(315*radians),
+  Math.cos(337.5*radians),
+];
+
+const obstacleVertexShader = `
+    attribute vec4 aVertexPosition;
+    attribute vec4 aVertexColor;
+    
+    uniform highp float u_locationZ;
+    uniform lowp float u_view_distance;
+    uniform mat4 uModelViewMatrix;
+    uniform mat4 uProjectionMatrix;
+
+    varying lowp vec4 vColor;
+    varying float v_fogAmount;
+
+    void main(void) {
+      gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+      vColor = aVertexColor;
+      vec4 vertexLocation = (uModelViewMatrix * aVertexPosition);
+      v_fogAmount = -vertexLocation.z/(2.0*u_view_distance);
+    }
+  `;
+
+const obstacleFragmentShader = `
+    varying lowp vec4 vColor;
+    varying lowp float v_fogAmount;
+
+    uniform lowp vec4 u_fogColor;    
+
+    void main(void) {
+      gl_FragColor = vColor - (vColor * v_fogAmount);
+      gl_FragColor.w = 1.0;
+    }
+  `;
+
+
 // Vertex shader program
 const vsSource =
 `
@@ -86,10 +159,8 @@ function adjustRotation(change, prev) {
 }
 
 
-//
 // Initialize a texture and load an image.
-// When the image finished loading copy it into the texture.
-//
+// When the image finishes loading copy it into the texture.
 function loadTexture(gl, url) {
   const texture = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -144,46 +215,6 @@ function isPowerOf2(value) {
 
 
 function generateTunnelSegments(n) {
-  const radians = Math.PI/180;
-
-  const xPoints = [
-    0.0,
-    Math.sin(22.5*radians),
-    Math.sin(45*radians),
-    Math.sin(67.5*radians),
-    Math.sin(90*radians),
-    Math.sin(112.5*radians),
-    Math.sin(135*radians),
-    Math.sin(157.5*radians),
-    Math.sin(180*radians),
-    Math.sin(202.5*radians),
-    Math.sin(225*radians),
-    Math.sin(247.5*radians),
-    Math.sin(270*radians),
-    Math.sin(292.5*radians),
-    Math.sin(315*radians),
-    Math.sin(337.5*radians),
-  ];
-
-  const yPoints = [
-    1.0,
-    Math.cos(22.5*radians),
-    Math.cos(45*radians),
-    Math.cos(67.5*radians),
-    Math.cos(90*radians),
-    Math.cos(112.5*radians),
-    Math.cos(135*radians),
-    Math.cos(157.5*radians),
-    Math.cos(180*radians),
-    Math.cos(202.5*radians),
-    Math.cos(225*radians),
-    Math.cos(247.5*radians),
-    Math.cos(270*radians),
-    Math.cos(292.5*radians),
-    Math.cos(315*radians),
-    Math.cos(337.5*radians),
-  ];
-
   const size = Math.sqrt(Math.pow(xPoints[1] - xPoints[0], 2) + Math.pow(yPoints[1] - yPoints[0], 2));
   const distance = 32.0*size;
 
@@ -226,6 +257,7 @@ function generateTunnelSegments(n) {
   return segments;
 }
 
+
 function generateSquareIndices(n) {
   var indices = [];
   for (var i = 0; i < n; i++) {
@@ -243,6 +275,25 @@ function generateSquareIndices(n) {
   return indices;
 }
 
+
+function generateObstacleIndices(n) {
+  var indices = [];
+  for (var i = 0; i < n; i++) {
+    const first = i*4;
+    indices.push(
+      first,
+      first+1,
+      first+2,
+      first,
+      first+2,
+      first+3
+    );
+  }
+
+  return indices;
+}
+
+
 function generateTextureCoordinates(n) {
   var coords = [];
   for (var i = 0; i < n; i++) {
@@ -257,4 +308,11 @@ function generateTextureCoordinates(n) {
   }
 
   return coords;
+}
+
+
+// Function for translating mouse movement to in-game movement
+function updatePosition(e) {
+  xRotation = adjustRotation(e.movementX, xRotation);
+  yRotation = adjustRotation(e.movementY, yRotation);
 }

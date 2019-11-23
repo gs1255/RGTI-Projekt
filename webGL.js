@@ -2,20 +2,13 @@
 var xRotation = 0.0;
 var yRotation = 0.0;
 var mouseSensitivity = 10;
-var speed = 0.1;
+var speed = 0.05;
 var locationX = 0;
 var locationY = 0;
 var locationZ = 0;
 var konec = true;
 var tunnelSegmentLength = 0;
 var travelDistance = 0;
-
-
-// Function for translating mouse movement to in-game movement
-function updatePosition(e) {
-  xRotation = adjustRotation(e.movementX, xRotation);
-  yRotation = adjustRotation(e.movementY, yRotation);
-}
 
 
 function main() {
@@ -29,33 +22,55 @@ function main() {
     return;
   }
 
+  // Audio
+
+
   // Load textures
   const tunnel_texture = loadTexture(gl, 'tunnel_texture3.png');
   const intro_texture = loadTexture(gl, 'start_image.png');
 
   // Create shaders
-  const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+  const tunnelShaderProgram = initShaderProgram(gl, vsSource, fsSource);
+  const obstacleShaderProgram = initShaderProgram(gl, obstacleVertexShader, obstacleFragmentShader);
 
   // Store program info
-  const programInfo = {
-    program: shaderProgram,
+  const tunnelProgram = {
+    program: tunnelShaderProgram,
     attribLocations: {
-      vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
-      textureCoord: gl.getAttribLocation(shaderProgram, 'aTextureCoord'),
+      vertexPosition: gl.getAttribLocation(tunnelShaderProgram, 'aVertexPosition'),
+      textureCoord: gl.getAttribLocation(tunnelShaderProgram, 'aTextureCoord'),
     },
     uniformLocations: {
-      projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
-      modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
-      uSampler: gl.getUniformLocation(shaderProgram, 'uSampler'),
+      projectionMatrix: gl.getUniformLocation(tunnelShaderProgram, 'uProjectionMatrix'),
+      modelViewMatrix: gl.getUniformLocation(tunnelShaderProgram, 'uModelViewMatrix'),
+      uSampler: gl.getUniformLocation(tunnelShaderProgram, 'uSampler'),
+    },
+  };
+
+  const obstacleProgram = {
+    program: obstacleShaderProgram,
+    attribLocations: {
+      vertexPosition: gl.getAttribLocation(obstacleShaderProgram, 'aVertexPosition'),
+      vertexColor: gl.getAttribLocation(obstacleShaderProgram, 'aVertexColor')
+    },
+    uniformLocations: {
+      projectionMatrix: gl.getUniformLocation(obstacleShaderProgram, 'uProjectionMatrix'),
+      modelViewMatrix: gl.getUniformLocation(obstacleShaderProgram, 'uModelViewMatrix'),
+      locationZ: gl.getUniformLocation(obstacleShaderProgram, 'u_locationZ'),
+      view_distance: gl.getUniformLocation(obstacleShaderProgram, 'u_view_distance'),
+      fogColor: gl.getUniformLocation(obstacleShaderProgram, 'u_fogColor')
     },
   };
 
   // initialize buffers
-  const buffers = initBuffers(gl);
+  const tunnel_data = generateTunnelData();
+  const tunnel_buffers = initializeTunnelBuffers(gl, tunnel_data.verticeCoords, tunnel_data.textureCoords, tunnel_data.squareIndices);
+  const obstacle_data = generateObstacleData();
+  const obstacle_buffers = initializeObstacleBuffers(gl, obstacle_data.verticeCoords, obstacle_data.colorData, obstacle_data.squareIndices);
   const intro_buffers = initIntroBuffers(gl);
 
   //  Load intro
-  renderIntro(gl, programInfo, intro_buffers, intro_texture);
+  renderIntro(gl, tunnelProgram, intro_buffers, intro_texture);
 
   // Implement mouse tracking
   canvas.onclick = function() {
@@ -72,7 +87,8 @@ function main() {
 
   // Animation function
   function render() {
-    drawScene(gl, programInfo, buffers, tunnel_texture);
+    drawTunnel(gl, tunnelProgram, tunnel_buffers, tunnel_texture);
+    drawObstacles(gl, obstacleProgram, obstacle_buffers);
 
     if (!konec) {
       requestAnimationFrame(render);
@@ -82,7 +98,7 @@ function main() {
   }
 
   function renderIntro() {
-    drawIntro(gl, programInfo, intro_buffers, intro_texture)
+    drawIntro(gl, tunnelProgram, intro_buffers, intro_texture)
     if (konec) {
       requestAnimationFrame(renderIntro);
     } else {
@@ -93,336 +109,140 @@ function main() {
 }
 
 
-// Inititalizes the neccesary buffers
-function initBuffers(gl) {
+function generateTunnelData () {
 
-  // Create a buffer for the square's positions.
-  const positionBuffer = gl.createBuffer();
-
-  // Select the positionBuffer as the one to apply buffer
-  // operations to from here out.
-  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
-  // Now create an array of positions for the square.
-  // Hexadecagon points
-  const positions = generateTunnelSegments(10);
-  tunnelSegmentLength = -positions[5];
-  travelDistance = tunnelSegmentLength;
+  // Generate tunnel vertices and append them to the verticeCoords array
+  const verticeCoords = generateTunnelSegments(4);
+  tunnelSegmentLength = -verticeCoords[5];
   console.log(tunnelSegmentLength);
+  travelDistance = tunnelSegmentLength;
 
-  /*[
-  //Octagon
-  // Side 1
-  xPoints[0], yPoints[0], 0.0,
-  xPoints[0], yPoints[0], -size*16,
-  yPoints[1], yPoints[1], -size*16,
-  yPoints[1], yPoints[1], 0.0,
-  // Side 1
-  xPoints[0], yPoints[0], 0.0,
-  xPoints[0], yPoints[0], -size*16,
-  yPoints[1], yPoints[1], -size*16,
-  yPoints[1], yPoints[1], 0.0,
-  // Side 1
-  xPoints[0], yPoints[0], 0.0,
-  xPoints[0], yPoints[0], -size*16,
-  yPoints[1], yPoints[1], -size*16,
-  yPoints[1], yPoints[1], 0.0,
-  // Side 1
-  xPoints[0], yPoints[0], 0.0,
-  xPoints[0], yPoints[0], -size*16,
-  yPoints[1], yPoints[1], -size*16,
-  yPoints[1], yPoints[1], 0.0,
-  // Side 1
-  xPoints[0], yPoints[0], 0.0,
-  xPoints[0], yPoints[0], -size*16,
-  yPoints[1], yPoints[1], -size*16,
-  yPoints[1], yPoints[1], 0.0,
-  // Side 1
-  xPoints[0], yPoints[0], 0.0,
-  xPoints[0], yPoints[0], -size*16,
-  yPoints[1], yPoints[1], -size*16,
-  yPoints[1], yPoints[1], 0.0,
-  // Side 1
-  xPoints[0], yPoints[0], 0.0,
-  xPoints[0], yPoints[0], -size*16,
-  yPoints[1], yPoints[1], -size*16,
-  yPoints[1], yPoints[1], 0.0,
-  // Side 1
-  xPoints[0], yPoints[0], 0.0,
-  xPoints[0], yPoints[0], -size*16,
-  yPoints[1], yPoints[1], -size*16,
-  yPoints[1], yPoints[1], 0.0,
-  // Side 1
-  xPoints[0], yPoints[0], 0.0,
-  xPoints[0], yPoints[0], -size*16,
-  yPoints[1], yPoints[1], -size*16,
-  yPoints[1], yPoints[1], 0.0,
-  // Side 1
-  xPoints[0], yPoints[0], 0.0,
-  xPoints[0], yPoints[0], -size*16,
-  yPoints[1], yPoints[1], -size*16,
-  yPoints[1], yPoints[1], 0.0,
-  // Side 1
-  xPoints[0], yPoints[0], 0.0,
-  xPoints[0], yPoints[0], -size*16,
-  yPoints[1], yPoints[1], -size*16,
-  yPoints[1], yPoints[1], 0.0,
-  // Side 1
-  xPoints[0], yPoints[0], 0.0,
-  xPoints[0], yPoints[0], -size*16,
-  yPoints[1], yPoints[1], -size*16,
-  yPoints[1], yPoints[1], 0.0,
-  // Side 1
-  xPoints[0], yPoints[0], 0.0,
-  xPoints[0], yPoints[0], -size*16,
-  yPoints[1], yPoints[1], -size*16,
-  yPoints[1], yPoints[1], 0.0,
-  // Side 1
-  xPoints[0], yPoints[0], 0.0,
-  xPoints[0], yPoints[0], -size*16,
-  yPoints[1], yPoints[1], -size*16,
-  yPoints[1], yPoints[1], 0.0,
-  // Side 1
-  xPoints[0], yPoints[0], 0.0,
-  xPoints[0], yPoints[0], -size*16,
-  yPoints[1], yPoints[1], -size*16,
-  yPoints[1], yPoints[1], 0.0,
-  // Side 1
-  xPoints[0], yPoints[0], 0.0,
-  xPoints[0], yPoints[0], -size*16,
-  yPoints[1], yPoints[1], -size*16,
-  yPoints[1], yPoints[1], 0.0,
+  //Generate texture data and append it to the textureCoords array
+  const textureCoords = generateTextureCoordinates(4);
 
-  //Square
-  /*
-  // Top side
-  -1.0, 1.0, 0.0,
-  1.0, 1.0, 0.0,
-  1.0, 1.0, -15.0,
-  -1.0, 1.0, -15.0,
-  // Left side
-  -1.0, 1.0, 0.0,
-  -1.0, 1.0, -15.0,
-  -1.0, -1.0, -15.0,
-  -1.0, -1.0, 0.0,
-  // Bottom side
-  -1.0, -1.0, 0.0,
-  -1.0, -1.0, -15.0,
-  1.0, -1.0, -15.0,
-  1.0, -1.0, 0.0,
-  // Right side
-  1.0, -1.0, 0.0,
-  1.0, -1.0, -15.0,
-  1.0, 1.0, -15.0,
-  1.0, 1.0, 0.0,
+  //Generate connections between vertices
+  const squareIndices = generateSquareIndices(16*4);
 
-  // Top side
-  -1.0, 1.0, -30.0,
-  1.0, 1.0, -30.0,
-  1.0, 1.0, -30.0,
-  -1.0, 1.0, -30.0,
-  // Left side
-  -1.0, 1.0, -15.0,
-  -1.0, 1.0, -30.0,
-  -1.0, -1.0, -30.0,
-  -1.0, -1.0, -15.0,
-  // Bottom side
-  -1.0, -1.0, -15.0,
-  -1.0, -1.0, -30.0,
-  1.0, -1.0, -30.0,
-  1.0, -1.0, -15.0,
-  // Right side
-  1.0, -1.0, -15.0,
-  1.0, -1.0, -30.0,
-  1.0, 1.0, -30.0,
-  1.0, 1.0, -15.0,
+  return {
+    verticeCoords: verticeCoords,
+    textureCoords: textureCoords,
+    squareIndices: squareIndices
+  };
+}
 
-  // Top side
-  -1.0, 1.0, -30.0,
-  1.0, 1.0, -30.0,
-  1.0, 1.0, -45.0,
-  -1.0, 1.0, -45.0,
-  // Left side
-  -1.0, 1.0, -30.0,
-  -1.0, 1.0, -45.0,
-  -1.0, -1.0, -45.0,
-  -1.0, -1.0, -30.0,
-  // Bottom side
-  -1.0, -1.0, -30.0,
-  -1.0, -1.0, -45.0,
-  1.0, -1.0, -45.0,
-  1.0, -1.0, -30.0,
-  // Right side
-  1.0, -1.0, -30.0,
-  1.0, -1.0, -45.0,
-  1.0, 1.0, -45.0,
-  1.0, 1.0, -30.0,
+
+function generateObstacleData() {
+  // Generate obstacle vertices and append them to the verticeCoords array
+  const verticeCoords = [
+    // Top hole front face
+    -1.5, 0.33, -tunnelSegmentLength,
+    -1.5, -1.5, -tunnelSegmentLength,
+    1.5, -1.5, -tunnelSegmentLength,
+    1.5, 0.33, -tunnelSegmentLength,
+    // Top hole back face
+    -1.5, 0.33, -tunnelSegmentLength-0.25,
+    -1.5, -1.5, -tunnelSegmentLength-0.25,
+    1.5, -1.5, -tunnelSegmentLength-0.25,
+    1.5, 0.33, -tunnelSegmentLength-0.25,
+    // Top hole top face
+    -1.5, 0.33, -tunnelSegmentLength-0.25,
+    -1.5, 0.33, -tunnelSegmentLength,
+    1.5, 0.33, -tunnelSegmentLength,
+    1.5, 0.33, -tunnelSegmentLength-0.25,
+
+    // Bottom hole front face
+    -1.5, 1.5, -tunnelSegmentLength,
+    -1.5, -0.33, -tunnelSegmentLength,
+    1.5, -0.33, -tunnelSegmentLength,
+    1.5, 1.5, -tunnelSegmentLength,
+    // Bottom hole back face
+    -1.5, 1.5, -tunnelSegmentLength-0.25,
+    -1.5, -0.33, -tunnelSegmentLength-0.25,
+    1.5, -0.33, -tunnelSegmentLength-0.25,
+    1.5, 1.5, -tunnelSegmentLength-0.25,
+    // Bottom hole bottom face
+    -1.5, -0.33, -tunnelSegmentLength-0.25,
+    -1.5, -0.33, -tunnelSegmentLength,
+    1.5, -0.33, -tunnelSegmentLength,
+    1.5, -0.33, -tunnelSegmentLength-0.25,
+    
+    // Right hole front face
+    -1.5, 1.5, -tunnelSegmentLength,
+    -1.5, -1.5, -tunnelSegmentLength,
+    0.33, -1.5, -tunnelSegmentLength,
+    0.33, 1.5, -tunnelSegmentLength,
+    // Right hole back face
+    -1.5, 1.5, -tunnelSegmentLength-0.25,
+    -1.5, -1.5, -tunnelSegmentLength-0.25,
+    0.33, -1.5, -tunnelSegmentLength-0.25,
+    0.33, 1.5, -tunnelSegmentLength-0.25,
+    // Right hole right face
+    0.33, 1.5, -tunnelSegmentLength-0.25,
+    0.33, 1.5, -tunnelSegmentLength,
+    0.33, -1.5, -tunnelSegmentLength,
+    0.33, -1.5, -tunnelSegmentLength-0.25,
+    
+    // Left hole front face
+    -0.33, 1.5, -tunnelSegmentLength,
+    -0.33, -1.5, -tunnelSegmentLength,
+    1.5, -1.5, -tunnelSegmentLength,
+    1.5, 1.5, -tunnelSegmentLength,
+    // Left hole front face
+    -0.33, 1.5, -tunnelSegmentLength-0.25,
+    -0.33, -1.5, -tunnelSegmentLength-0.25,
+    1.5, -1.5, -tunnelSegmentLength-0.25,
+    1.5, 1.5, -tunnelSegmentLength-0.25,
+    // Left hole front face
+    -0.33, -1.5, -tunnelSegmentLength-0.25,
+    -0.33, -1.5, -tunnelSegmentLength,
+    -0.33, 1.5, -tunnelSegmentLength,
+    -0.33, 1.5, -tunnelSegmentLength-0.25
   ];
-  */
 
-  // Now pass the list of positions into WebGL to build the
-  // shape. We do this by creating a Float32Array from the
-  // JavaScript array, then use it to fill the current buffer.
+  //Generate color data and append it to the textureCoords array
+  const colorData = [
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0
+  ];
+
+  //Generate connections between vertices
+  const squareIndices = generateObstacleIndices(2*3);
+
+  return {
+    verticeCoords: verticeCoords,
+    colorData: colorData,
+    squareIndices: squareIndices
+  };
+}
+
+
+function initializeTunnelBuffers(gl, verticeCoords, textureCoords, squareIndices) {
+  const positionBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
   gl.bufferData(gl.ARRAY_BUFFER,
-                new Float32Array(positions),
+                new Float32Array(verticeCoords),
                 gl.STATIC_DRAW);
-
 
   // Texture data
   const textureCoordBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
-
-  const textureCoordinates = generateTextureCoordinates(10);
-    /*[
-    // Front
-    0.0,  0.0,
-    0.0,  1.0,
-    1.0,  0.0,
-    1.0,  1.0,
-    // Front
-    0.0,  0.0,
-    0.0,  1.0,
-    1.0,  0.0,
-    1.0,  1.0,
-    // Front
-    0.0,  0.0,
-    0.0,  1.0,
-    1.0,  0.0,
-    1.0,  1.0,
-    // Front
-    0.0,  0.0,
-    0.0,  1.0,
-    1.0,  0.0,
-    1.0,  1.0,
-    // Front
-    0.0,  0.0,
-    0.0,  1.0,
-    1.0,  0.0,
-    1.0,  1.0,
-    // Front
-    0.0,  0.0,
-    0.0,  1.0,
-    1.0,  0.0,
-    1.0,  1.0,
-    // Front
-    0.0,  0.0,
-    0.0,  1.0,
-    1.0,  0.0,
-    1.0,  1.0,
-    // Front
-    0.0,  0.0,
-    0.0,  1.0,
-    1.0,  0.0,
-    1.0,  1.0,
-    // Front
-    0.0,  0.0,
-    0.0,  1.0,
-    1.0,  0.0,
-    1.0,  1.0,
-    // Front
-    0.0,  0.0,
-    0.0,  1.0,
-    1.0,  0.0,
-    1.0,  1.0,
-    // Front
-    0.0,  0.0,
-    0.0,  1.0,
-    1.0,  0.0,
-    1.0,  1.0,
-    // Front
-    0.0,  0.0,
-    0.0,  1.0,
-    1.0,  0.0,
-    1.0,  1.0,
-    // Front
-    0.0,  0.0,
-    0.0,  1.0,
-    1.0,  0.0,
-    1.0,  1.0,
-    // Front
-    0.0,  0.0,
-    0.0,  1.0,
-    1.0,  0.0,
-    1.0,  1.0,
-    // Front
-    0.0,  0.0,
-    0.0,  1.0,
-    1.0,  0.0,
-    1.0,  1.0,
-    // Front
-    0.0,  0.0,
-    0.0,  1.0,
-    1.0,  0.0,
-    1.0,  1.0,
-    
-  ];
-  */
-
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates),
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords),
                 gl.STATIC_DRAW);
-
-  // Create an array of colors
-  /*
-  const faceColors = [
-    [1.0,  1.0,  1.0,  1.0],    // Top face: white
-    [1.0,  0.0,  0.0,  1.0],    // Left face: red
-    [0.0,  0.0,  1.0,  1.0],    // Bottom face: blue
-    [1.0,  1.0,  0.0,  1.0],    // Right face: yellow
-
-    [0.0,  0.0,  1.0,  1.0],    // Bottom face: blue
-    [1.0,  1.0,  0.0,  1.0],    // Right face: yellow
-    [1.0,  1.0,  1.0,  1.0],    // Top face: white
-    [1.0,  0.0,  0.0,  1.0],    // Left face: red
-
-    [1.0,  1.0,  1.0,  1.0],    // Top face: white
-    [1.0,  0.0,  0.0,  1.0],    // Left face: red
-    [0.0,  0.0,  1.0,  1.0],    // Bottom face: blue
-    [1.0,  1.0,  0.0,  1.0],    // Right face: yellow
-  ];
-
-  // Convert the array of colors into a table for all the vertices.
-  var colors = [];
-
-  for (var j = 0; j < faceColors.length; ++j) {
-    const c = faceColors[j];
-
-    // Repeat each color four times for the four vertices of the face
-    colors = colors.concat(c, c, c, c);
-  }
-
-  const colorBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-  */
   
   const indexBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-
-  // This array defines each face as two triangles, using the
-  // indices into the vertex array to specify each triangle's
-  // position.
-  const indices = generateSquareIndices(16*10);
-  /*[
-    0,  1,  2,      0,  2,  3,    // top
-    4,  5,  6,      4,  6,  7,    // back
-    8,  9,  10,     8,  10, 11,   // top
-    12, 13, 14,     12, 14, 15,   // bottom
-
-    16, 17, 18,     16, 18, 19,    // top
-    20, 21, 22,     20, 22, 23,    // top
-    24, 25, 26,     24, 26, 27,    // top
-    28, 29, 30,     28, 30, 31,    // top
-
-    32, 33, 34,     32, 34, 35,    // top
-    36, 37, 38,     36, 38, 39,    // top
-    40, 41, 42,     40, 42, 43,    // top
-    44, 45, 46,     44, 46, 47,    // top
-  ];
-  */
-
-  // Now send the element array to GL
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
-      new Uint16Array(indices), gl.STATIC_DRAW);
+      new Uint16Array(squareIndices), gl.STATIC_DRAW);
 
   return {
     position: positionBuffer,
@@ -430,6 +250,152 @@ function initBuffers(gl) {
     indices: indexBuffer,
   };
 }
+
+
+function initializeObstacleBuffers(gl, verticeCoords, colorData, squareIndices) {
+  const positionBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER,
+                new Float32Array(verticeCoords),
+                gl.STATIC_DRAW);
+
+  // Color data
+  const colorBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colorData), gl.STATIC_DRAW);
+
+  
+  const indexBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
+      new Uint16Array(squareIndices), gl.STATIC_DRAW);
+
+  return {
+    position: positionBuffer,
+    color: colorBuffer,
+    indices: indexBuffer,
+  };
+}
+
+
+function drawObstacles(gl, programInfo, buffers) {
+  //gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
+  //gl.clearDepth(1.0);                 // Clear everything
+  //gl.enable(gl.DEPTH_TEST);           // Enable depth testing
+  //gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
+
+  // Clear the canvas before we start drawing on it.
+  //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+  // Create the perspective matrix
+  const fieldOfView = 60 * Math.PI / 180;   // in radians
+  const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+  const zNear = 0.01;
+  const zFar = 3*tunnelSegmentLength;
+  const projectionMatrix = glMatrix.mat4.create();
+  glMatrix.mat4.perspective(projectionMatrix,
+                   fieldOfView,
+                   aspect,
+                   zNear,
+                   zFar);
+
+  // Set the drawing position to the "identity" point, which is
+  // the center of the scene.
+  const modelViewMatrix = glMatrix.mat4.create();
+
+  // Rotate the view (before translating!!)
+  // Along the X axis 
+  glMatrix.mat4.rotate(modelViewMatrix,  // destination matrix
+              modelViewMatrix,  // matrix to rotate
+              xRotation,   // amount to rotate in radians
+              [0, 1, 0]);       // axis to rotate around
+  //Along the Y axis
+  glMatrix.mat4.rotate(modelViewMatrix,
+              modelViewMatrix,
+              yRotation,
+              [1, 0, 0]);
+
+  // Movement
+  glMatrix.mat4.translate(modelViewMatrix,     // destination matrix
+                 modelViewMatrix,     // matrix to translate
+                 [locationX, locationY, locationZ]);  // amount to translate
+
+  // Tell WebGL how to pull out the positions from the position
+  // buffer into the vertexPosition attribute.
+  {
+    const numComponents = 3;  // pull out 3 values per iteration
+    const type = gl.FLOAT;    // the data in the buffer is 32bit floats
+    const normalize = false;  // don't normalize
+    const stride = 0;         // how many bytes to get from one set of values to the next
+                              // 0 = use type and numComponents above
+    const offset = 0;         // how many bytes inside the buffer to start from
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+    gl.vertexAttribPointer(
+        programInfo.attribLocations.vertexPosition,
+        numComponents,
+        type,
+        normalize,
+        stride,
+        offset);
+    gl.enableVertexAttribArray(
+        programInfo.attribLocations.vertexPosition);
+  }
+
+  // Tell WebGL how to pull out the colors from the texture buffer
+  // into the vertexColor attribute.
+  {
+    const num = 4; // every coordinate composed of 2 values
+    const type = gl.FLOAT; // the data in the buffer is 32 bit float
+    const normalize = false; // don't normalize
+    const stride = 0; // how many bytes to get from one set to the next
+    const offset = 0; // how many bytes inside the buffer to start from
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
+    gl.vertexAttribPointer(programInfo.attribLocations.vertexColor, num, type, normalize, stride, offset);
+    gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
+  }
+
+  // Tell WebGL which indices to use to index the vertices
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
+
+  // Tell WebGL to use our program when drawing
+  gl.useProgram(programInfo.program);
+
+  // Set the shader uniforms
+  gl.uniformMatrix4fv(
+      programInfo.uniformLocations.projectionMatrix,
+      false,
+      projectionMatrix);
+  gl.uniformMatrix4fv(
+      programInfo.uniformLocations.modelViewMatrix,
+      false,
+      modelViewMatrix);
+
+  // Tell WebGL fogging info
+  gl.uniform1f (programInfo.uniformLocations.view_distance, tunnelSegmentLength);
+
+  {
+    const vertexCount = 18;
+    const type = gl.UNSIGNED_SHORT;
+    const offset = 0;
+    gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
+  }
+
+  glMatrix.mat4.translate(modelViewMatrix,     // destination matrix
+                 modelViewMatrix,     // matrix to translate
+                 [0, 0, -tunnelSegmentLength]);  // amount to translate
+  gl.uniformMatrix4fv(
+      programInfo.uniformLocations.modelViewMatrix,
+      false,
+      modelViewMatrix);
+
+  {
+    const vertexCount = 18;
+    const type = gl.UNSIGNED_SHORT;
+    const offset = 0;
+    gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
+  }
+}
+
 
 
 function initIntroBuffers(gl) {
@@ -503,7 +469,7 @@ function initIntroBuffers(gl) {
 
 
 // Finally draws the simple scene
-function drawScene(gl, programInfo, buffers, texture) {
+function drawTunnel(gl, programInfo, buffers, texture) {
   gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
   gl.clearDepth(1.0);                 // Clear everything
   gl.enable(gl.DEPTH_TEST);           // Enable depth testing
@@ -512,20 +478,12 @@ function drawScene(gl, programInfo, buffers, texture) {
   // Clear the canvas before we start drawing on it.
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  // Create a perspective matrix, a special matrix that is
-  // used to simulate the distortion of perspective in a camera.
-  // Our field of view is 45 degrees, with a width/height
-  // ratio that matches the display size of the canvas
-  // and we only want to see objects between 0.1 units
-  // and 100 units away from the camera.
+  // Create the perspective matrix
   const fieldOfView = 60 * Math.PI / 180;   // in radians
   const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
   const zNear = 0.01;
-  const zFar = tunnelSegmentLength*4;
+  const zFar = 4*tunnelSegmentLength;
   const projectionMatrix = glMatrix.mat4.create();
-
-  // note: glmatrix.js always has the first argument
-  // as the destination to receive the result.
   glMatrix.mat4.perspective(projectionMatrix,
                    fieldOfView,
                    aspect,
@@ -536,24 +494,19 @@ function drawScene(gl, programInfo, buffers, texture) {
   // the center of the scene.
   const modelViewMatrix = glMatrix.mat4.create();
 
-  // Now move the drawing position a bit to where we want to
-  // start drawing the square.
-  //glMatrix.mat4.translate(modelViewMatrix,     // destination matrix
-  //               modelViewMatrix,     // matrix to translate
-  //               [0.0, 0.0, 0.0]);  // amount to translate
-
-  //Rotate the cube
+  // Rotate the view (before translating!!)
+  // Along the X axis 
   glMatrix.mat4.rotate(modelViewMatrix,  // destination matrix
               modelViewMatrix,  // matrix to rotate
               xRotation,   // amount to rotate in radians
               [0, 1, 0]);       // axis to rotate around
-
+  //Along the Y axis
   glMatrix.mat4.rotate(modelViewMatrix,
-    modelViewMatrix,
-    yRotation,
-    [1, 0, 0]);
+              modelViewMatrix,
+              yRotation,
+              [1, 0, 0]);
 
-  // Premikanje po tunelu
+  // Movement
   glMatrix.mat4.translate(modelViewMatrix,     // destination matrix
                  modelViewMatrix,     // matrix to translate
                  [locationX, locationY, locationZ]);  // amount to translate
@@ -579,7 +532,7 @@ function drawScene(gl, programInfo, buffers, texture) {
         programInfo.attribLocations.vertexPosition);
   }
 
-  // Tell WebGL how to pull out the colors from the color buffer
+  // Tell WebGL how to pull out the colors from the texture buffer
   // into the vertexColor attribute.
   {
     const num = 2; // every coordinate composed of 2 values
@@ -590,7 +543,7 @@ function drawScene(gl, programInfo, buffers, texture) {
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureCoord);
     gl.vertexAttribPointer(programInfo.attribLocations.textureCoord, num, type, normalize, stride, offset);
     gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord);
-}
+  }
 
   // Tell WebGL which indices to use to index the vertices
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
@@ -618,7 +571,7 @@ function drawScene(gl, programInfo, buffers, texture) {
       modelViewMatrix);
 
   {
-    const vertexCount = 96*10;
+    const vertexCount = 96*4;
     const type = gl.UNSIGNED_SHORT;
     const offset = 0;
     gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
