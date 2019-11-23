@@ -85,6 +85,7 @@ function adjustRotation(change, prev) {
   return newRotation;
 }
 
+
 //
 // Initialize a texture and load an image.
 // When the image finished loading copy it into the texture.
@@ -136,6 +137,124 @@ function loadTexture(gl, url) {
   return texture;
 }
 
+
 function isPowerOf2(value) {
   return (value & (value - 1)) == 0;
+}
+
+
+function generateTunnelSegments(n) {
+  const radians = Math.PI/180;
+
+  const xPoints = [
+    0.0,
+    Math.sin(22.5*radians),
+    Math.sin(45*radians),
+    Math.sin(67.5*radians),
+    Math.sin(90*radians),
+    Math.sin(112.5*radians),
+    Math.sin(135*radians),
+    Math.sin(157.5*radians),
+    Math.sin(180*radians),
+    Math.sin(202.5*radians),
+    Math.sin(225*radians),
+    Math.sin(247.5*radians),
+    Math.sin(270*radians),
+    Math.sin(292.5*radians),
+    Math.sin(315*radians),
+    Math.sin(337.5*radians),
+  ];
+
+  const yPoints = [
+    1.0,
+    Math.cos(22.5*radians),
+    Math.cos(45*radians),
+    Math.cos(67.5*radians),
+    Math.cos(90*radians),
+    Math.cos(112.5*radians),
+    Math.cos(135*radians),
+    Math.cos(157.5*radians),
+    Math.cos(180*radians),
+    Math.cos(202.5*radians),
+    Math.cos(225*radians),
+    Math.cos(247.5*radians),
+    Math.cos(270*radians),
+    Math.cos(292.5*radians),
+    Math.cos(315*radians),
+    Math.cos(337.5*radians),
+  ];
+
+  const size = Math.sqrt(Math.pow(xPoints[1] - xPoints[0], 2) + Math.pow(yPoints[1] - yPoints[0], 2));
+  const distance = 32.0*size;
+
+  var segments = [];
+
+  for (var i = 0; i < n; i++) {
+    for (var j = 0; j < 15; j++) {
+      segments.push(
+        xPoints[j],
+        yPoints[j],
+        -i*distance,
+        xPoints[j],
+        yPoints[j],
+        -(i+1)*distance,
+        xPoints[j+1],
+        yPoints[j+1],
+        -i*distance,
+        xPoints[j+1],
+        yPoints[j+1],
+        -(i+1)*distance
+      );
+      
+    }
+    segments.push(
+        xPoints[15],
+        yPoints[15],
+        -i*distance,
+        xPoints[15],
+        yPoints[15],
+        -(i+1)*distance,
+        xPoints[0],
+        yPoints[0],
+        -i*distance,
+        xPoints[0],
+        yPoints[0],
+        -(i+1)*distance
+      );
+  }
+
+  return segments;
+}
+
+function generateSquareIndices(n) {
+  var indices = [];
+  for (var i = 0; i < n; i++) {
+    const first = i*4;
+    indices.push(
+      first,
+      first+1,
+      first+2,
+      first+1,
+      first+2,
+      first+3
+    );
+  }
+
+  return indices;
+}
+
+function generateTextureCoordinates(n) {
+  var coords = [];
+  for (var i = 0; i < n; i++) {
+    for (var j = 0; j < 16; j++) {
+      coords.push(
+        0.0,  0.0,
+        0.0,  1.0,
+        1.0,  0.0,
+        1.0,  1.0         
+      );
+    }
+  }
+
+  return coords;
 }

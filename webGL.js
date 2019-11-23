@@ -7,6 +7,8 @@ var locationX = 0;
 var locationY = 0;
 var locationZ = 0;
 var konec = true;
+var tunnelSegmentLength = 0;
+var travelDistance = 0;
 
 
 // Function for translating mouse movement to in-game movement
@@ -28,7 +30,7 @@ function main() {
   }
 
   // Load textures
-  const tunnel_texture = loadTexture(gl, 'sample_texture.jpg');
+  const tunnel_texture = loadTexture(gl, 'tunnel_texture3.png');
   const intro_texture = loadTexture(gl, 'start_image.png');
 
   // Create shaders
@@ -102,70 +104,161 @@ function initBuffers(gl) {
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
   // Now create an array of positions for the square.
-  const positions = [
+  // Hexadecagon points
+  const positions = generateTunnelSegments(10);
+  tunnelSegmentLength = -positions[5];
+  travelDistance = tunnelSegmentLength;
+  console.log(tunnelSegmentLength);
+
+  /*[
+  //Octagon
+  // Side 1
+  xPoints[0], yPoints[0], 0.0,
+  xPoints[0], yPoints[0], -size*16,
+  yPoints[1], yPoints[1], -size*16,
+  yPoints[1], yPoints[1], 0.0,
+  // Side 1
+  xPoints[0], yPoints[0], 0.0,
+  xPoints[0], yPoints[0], -size*16,
+  yPoints[1], yPoints[1], -size*16,
+  yPoints[1], yPoints[1], 0.0,
+  // Side 1
+  xPoints[0], yPoints[0], 0.0,
+  xPoints[0], yPoints[0], -size*16,
+  yPoints[1], yPoints[1], -size*16,
+  yPoints[1], yPoints[1], 0.0,
+  // Side 1
+  xPoints[0], yPoints[0], 0.0,
+  xPoints[0], yPoints[0], -size*16,
+  yPoints[1], yPoints[1], -size*16,
+  yPoints[1], yPoints[1], 0.0,
+  // Side 1
+  xPoints[0], yPoints[0], 0.0,
+  xPoints[0], yPoints[0], -size*16,
+  yPoints[1], yPoints[1], -size*16,
+  yPoints[1], yPoints[1], 0.0,
+  // Side 1
+  xPoints[0], yPoints[0], 0.0,
+  xPoints[0], yPoints[0], -size*16,
+  yPoints[1], yPoints[1], -size*16,
+  yPoints[1], yPoints[1], 0.0,
+  // Side 1
+  xPoints[0], yPoints[0], 0.0,
+  xPoints[0], yPoints[0], -size*16,
+  yPoints[1], yPoints[1], -size*16,
+  yPoints[1], yPoints[1], 0.0,
+  // Side 1
+  xPoints[0], yPoints[0], 0.0,
+  xPoints[0], yPoints[0], -size*16,
+  yPoints[1], yPoints[1], -size*16,
+  yPoints[1], yPoints[1], 0.0,
+  // Side 1
+  xPoints[0], yPoints[0], 0.0,
+  xPoints[0], yPoints[0], -size*16,
+  yPoints[1], yPoints[1], -size*16,
+  yPoints[1], yPoints[1], 0.0,
+  // Side 1
+  xPoints[0], yPoints[0], 0.0,
+  xPoints[0], yPoints[0], -size*16,
+  yPoints[1], yPoints[1], -size*16,
+  yPoints[1], yPoints[1], 0.0,
+  // Side 1
+  xPoints[0], yPoints[0], 0.0,
+  xPoints[0], yPoints[0], -size*16,
+  yPoints[1], yPoints[1], -size*16,
+  yPoints[1], yPoints[1], 0.0,
+  // Side 1
+  xPoints[0], yPoints[0], 0.0,
+  xPoints[0], yPoints[0], -size*16,
+  yPoints[1], yPoints[1], -size*16,
+  yPoints[1], yPoints[1], 0.0,
+  // Side 1
+  xPoints[0], yPoints[0], 0.0,
+  xPoints[0], yPoints[0], -size*16,
+  yPoints[1], yPoints[1], -size*16,
+  yPoints[1], yPoints[1], 0.0,
+  // Side 1
+  xPoints[0], yPoints[0], 0.0,
+  xPoints[0], yPoints[0], -size*16,
+  yPoints[1], yPoints[1], -size*16,
+  yPoints[1], yPoints[1], 0.0,
+  // Side 1
+  xPoints[0], yPoints[0], 0.0,
+  xPoints[0], yPoints[0], -size*16,
+  yPoints[1], yPoints[1], -size*16,
+  yPoints[1], yPoints[1], 0.0,
+  // Side 1
+  xPoints[0], yPoints[0], 0.0,
+  xPoints[0], yPoints[0], -size*16,
+  yPoints[1], yPoints[1], -size*16,
+  yPoints[1], yPoints[1], 0.0,
+
+  //Square
+  /*
   // Top side
   -1.0, 1.0, 0.0,
   1.0, 1.0, 0.0,
-  1.0, 1.0, -30.0,
-  -1.0, 1.0, -30.0,
+  1.0, 1.0, -15.0,
+  -1.0, 1.0, -15.0,
   // Left side
   -1.0, 1.0, 0.0,
-  -1.0, 1.0, -30.0,
-  -1.0, -1.0, -30.0,
+  -1.0, 1.0, -15.0,
+  -1.0, -1.0, -15.0,
   -1.0, -1.0, 0.0,
   // Bottom side
   -1.0, -1.0, 0.0,
-  -1.0, -1.0, -30.0,
-  1.0, -1.0, -30.0,
+  -1.0, -1.0, -15.0,
+  1.0, -1.0, -15.0,
   1.0, -1.0, 0.0,
   // Right side
   1.0, -1.0, 0.0,
-  1.0, -1.0, -30.0,
-  1.0, 1.0, -30.0,
+  1.0, -1.0, -15.0,
+  1.0, 1.0, -15.0,
   1.0, 1.0, 0.0,
 
   // Top side
   -1.0, 1.0, -30.0,
   1.0, 1.0, -30.0,
-  1.0, 1.0, -60.0,
-  -1.0, 1.0, -60.0,
-  // Left side
-  -1.0, 1.0, -30.0,
-  -1.0, 1.0, -60.0,
-  -1.0, -1.0, -60.0,
-  -1.0, -1.0, -30.0,
-  // Bottom side
-  -1.0, -1.0, -30.0,
-  -1.0, -1.0, -60.0,
-  1.0, -1.0, -60.0,
-  1.0, -1.0, -30.0,
-  // Right side
-  1.0, -1.0, -30.0,
-  1.0, -1.0, -60.0,
-  1.0, 1.0, -60.0,
   1.0, 1.0, -30.0,
+  -1.0, 1.0, -30.0,
+  // Left side
+  -1.0, 1.0, -15.0,
+  -1.0, 1.0, -30.0,
+  -1.0, -1.0, -30.0,
+  -1.0, -1.0, -15.0,
+  // Bottom side
+  -1.0, -1.0, -15.0,
+  -1.0, -1.0, -30.0,
+  1.0, -1.0, -30.0,
+  1.0, -1.0, -15.0,
+  // Right side
+  1.0, -1.0, -15.0,
+  1.0, -1.0, -30.0,
+  1.0, 1.0, -30.0,
+  1.0, 1.0, -15.0,
 
   // Top side
-  -1.0, 1.0, -60.0,
-  1.0, 1.0, -60.0,
-  1.0, 1.0, -90.0,
-  -1.0, 1.0, -90.0,
+  -1.0, 1.0, -30.0,
+  1.0, 1.0, -30.0,
+  1.0, 1.0, -45.0,
+  -1.0, 1.0, -45.0,
   // Left side
-  -1.0, 1.0, -60.0,
-  -1.0, 1.0, -90.0,
-  -1.0, -1.0, -90.0,
-  -1.0, -1.0, -60.0,
+  -1.0, 1.0, -30.0,
+  -1.0, 1.0, -45.0,
+  -1.0, -1.0, -45.0,
+  -1.0, -1.0, -30.0,
   // Bottom side
-  -1.0, -1.0, -60.0,
-  -1.0, -1.0, -90.0,
-  1.0, -1.0, -90.0,
-  1.0, -1.0, -60.0,
+  -1.0, -1.0, -30.0,
+  -1.0, -1.0, -45.0,
+  1.0, -1.0, -45.0,
+  1.0, -1.0, -30.0,
   // Right side
-  1.0, -1.0, -60.0,
-  1.0, -1.0, -90.0,
-  1.0, 1.0, -90.0,
-  1.0, 1.0, -60.0,
+  1.0, -1.0, -30.0,
+  1.0, -1.0, -45.0,
+  1.0, 1.0, -45.0,
+  1.0, 1.0, -30.0,
   ];
+  */
 
   // Now pass the list of positions into WebGL to build the
   // shape. We do this by creating a Float32Array from the
@@ -179,68 +272,91 @@ function initBuffers(gl) {
   const textureCoordBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
 
-  const textureCoordinates = [
+  const textureCoordinates = generateTextureCoordinates(10);
+    /*[
     // Front
     0.0,  0.0,
+    0.0,  1.0,
     1.0,  0.0,
     1.0,  1.0,
-    0.0,  1.0,
-    // Back
-    0.0,  0.0,
-    1.0,  0.0,
-    1.0,  1.0,
-    0.0,  1.0,
-    // Top
-    0.0,  0.0,
-    1.0,  0.0,
-    1.0,  1.0,
-    0.0,  1.0,
-    // Bottom
-    0.0,  0.0,
-    1.0,  0.0,
-    1.0,  1.0,
-    0.0,  1.0,
-    // Right
-    0.0,  0.0,
-    1.0,  0.0,
-    1.0,  1.0,
-    0.0,  1.0,
-    // Left
-    0.0,  0.0,
-    1.0,  0.0,
-    1.0,  1.0,
-    0.0,  1.0,
     // Front
     0.0,  0.0,
+    0.0,  1.0,
     1.0,  0.0,
     1.0,  1.0,
-    0.0,  1.0,
-    // Back
+    // Front
     0.0,  0.0,
+    0.0,  1.0,
     1.0,  0.0,
     1.0,  1.0,
-    0.0,  1.0,
-    // Top
+    // Front
     0.0,  0.0,
+    0.0,  1.0,
     1.0,  0.0,
     1.0,  1.0,
-    0.0,  1.0,
-    // Bottom
+    // Front
     0.0,  0.0,
+    0.0,  1.0,
     1.0,  0.0,
     1.0,  1.0,
-    0.0,  1.0,
-    // Right
+    // Front
     0.0,  0.0,
+    0.0,  1.0,
     1.0,  0.0,
     1.0,  1.0,
-    0.0,  1.0,
-    // Left
+    // Front
     0.0,  0.0,
+    0.0,  1.0,
     1.0,  0.0,
     1.0,  1.0,
+    // Front
+    0.0,  0.0,
     0.0,  1.0,
+    1.0,  0.0,
+    1.0,  1.0,
+    // Front
+    0.0,  0.0,
+    0.0,  1.0,
+    1.0,  0.0,
+    1.0,  1.0,
+    // Front
+    0.0,  0.0,
+    0.0,  1.0,
+    1.0,  0.0,
+    1.0,  1.0,
+    // Front
+    0.0,  0.0,
+    0.0,  1.0,
+    1.0,  0.0,
+    1.0,  1.0,
+    // Front
+    0.0,  0.0,
+    0.0,  1.0,
+    1.0,  0.0,
+    1.0,  1.0,
+    // Front
+    0.0,  0.0,
+    0.0,  1.0,
+    1.0,  0.0,
+    1.0,  1.0,
+    // Front
+    0.0,  0.0,
+    0.0,  1.0,
+    1.0,  0.0,
+    1.0,  1.0,
+    // Front
+    0.0,  0.0,
+    0.0,  1.0,
+    1.0,  0.0,
+    1.0,  1.0,
+    // Front
+    0.0,  0.0,
+    0.0,  1.0,
+    1.0,  0.0,
+    1.0,  1.0,
+    
   ];
+  */
 
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates),
                 gl.STATIC_DRAW);
@@ -285,7 +401,8 @@ function initBuffers(gl) {
   // This array defines each face as two triangles, using the
   // indices into the vertex array to specify each triangle's
   // position.
-  const indices = [
+  const indices = generateSquareIndices(16*10);
+  /*[
     0,  1,  2,      0,  2,  3,    // top
     4,  5,  6,      4,  6,  7,    // back
     8,  9,  10,     8,  10, 11,   // top
@@ -301,6 +418,7 @@ function initBuffers(gl) {
     40, 41, 42,     40, 42, 43,    // top
     44, 45, 46,     44, 46, 47,    // top
   ];
+  */
 
   // Now send the element array to GL
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
@@ -373,7 +491,6 @@ function initIntroBuffers(gl) {
   ];
 
   // Now send the element array to GL
-
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
       new Uint16Array(indices), gl.STATIC_DRAW);
 
@@ -404,7 +521,7 @@ function drawScene(gl, programInfo, buffers, texture) {
   const fieldOfView = 60 * Math.PI / 180;   // in radians
   const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
   const zNear = 0.01;
-  const zFar = 30.0;
+  const zFar = tunnelSegmentLength*4;
   const projectionMatrix = glMatrix.mat4.create();
 
   // note: glmatrix.js always has the first argument
@@ -501,7 +618,7 @@ function drawScene(gl, programInfo, buffers, texture) {
       modelViewMatrix);
 
   {
-    const vertexCount = 72;
+    const vertexCount = 96*10;
     const type = gl.UNSIGNED_SHORT;
     const offset = 0;
     gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
@@ -511,10 +628,15 @@ function drawScene(gl, programInfo, buffers, texture) {
   locationX -= Math.sin(xRotation)*Math.cos(yRotation)*speed;
   locationY += Math.sin(yRotation)*Math.cos(xRotation)*speed;
   locationZ += Math.abs(Math.cos(xRotation)*Math.cos(yRotation)*speed);
-  if (locationZ >= 60) {
-    locationZ = 0;
+  if (locationZ >= travelDistance) {
+    locationZ -= travelDistance;
+    // Reset obstacle positions
+    console.log("location reset");
+
   }
-  if (locationX >= 1 || locationX <= -1 || locationY >= 1 || locationY <= -1) {
+
+  // Collision detection
+  if (Math.sqrt(Math.pow(locationX, 2) + Math.pow(locationY, 2)) > 1) {
     konec = true;
     locationX = 0;
     locationY = 0;
