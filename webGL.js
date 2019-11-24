@@ -2,7 +2,10 @@
 var xRotation = 0.0;
 var yRotation = 0.0;
 var mouseSensitivity = 10;
-var speed = 0.1;
+var trueScore = 0;
+var score = trueScore;
+var time = 1;
+var speed = Math.log10(time);
 var locationX = 0;
 var locationY = 0;
 var locationZ = 0;
@@ -738,8 +741,34 @@ function drawTunnel(gl, programInfo, buffers, texture) {
     obstacles[0] = obstacles[1];
     obstacles[1] = Math.floor(Math.random() * 6);
     //console.log("location reset");
-
   }
+
+  // Update speed and score
+  time += 0.01;
+  speed = Math.log10(time)/5;
+  trueScore += speed;
+  score = Math.floor(trueScore*10);
+
+  // Redraw HUD
+  flatContext.clearRect(0, 0, flatContext.canvas.width, flatContext.canvas.height);
+  // Crosshair
+  flatContext.strokeStyle = 'white';
+  flatContext.beginPath();
+  flatContext.arc(flatContext.canvas.width/2, flatContext.canvas.height/2, 3, 0, 2 * Math.PI);
+  flatContext.stroke();
+  // HUD base
+  flatContext.fillStyle = 'black';
+  flatContext.beginPath();
+  flatContext.moveTo(0, 460);
+  flatContext.moveTo(50, 460);
+  flatContext.moveTo(70, 470);
+  flatContext.moveTo(570, 470);
+  flatContext.moveTo(590, 460);
+  flatContext.moveTo(640, 460);
+
+
+
+
 
   // Tunnel collision detection
   if (Math.sqrt(Math.pow(locationX, 2) + Math.pow(locationY, 2)) > 1) {
@@ -749,7 +778,6 @@ function drawTunnel(gl, programInfo, buffers, texture) {
 
   // Obstacle collision detection
   if (locationZ >= tunnelSegmentLength-0.25) {
-    
     switch(obstacles[0]) {
       case 0:
         if (locationY > -0.33) {
@@ -782,18 +810,22 @@ function drawTunnel(gl, programInfo, buffers, texture) {
         }
         break;
     }
-
-    
   }
+
 }
 
 function endGame() {
+  console.log(score);
   konec = true;
   locationX = 0;
   locationY = 0;
   locationZ = 0;
   xRotation = 0;
   yRotation = 0;
+  time = 1;
+  speed = Math.log10(time);
+  score = 0;
+  trueScore = 0;
   // Reset obstacles
   obstacles = [Math.floor(Math.random() * 6), Math.floor(Math.random() * 6)];
   // Clear the HUD
