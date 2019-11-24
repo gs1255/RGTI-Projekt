@@ -2,14 +2,14 @@
 var xRotation = 0.0;
 var yRotation = 0.0;
 var mouseSensitivity = 10;
-var speed = 0.05;
+var speed = 0.1;
 var locationX = 0;
 var locationY = 0;
 var locationZ = 0;
 var konec = true;
 var tunnelSegmentLength = 0;
 var travelDistance = 0;
-
+var obstacles = [Math.floor(Math.random() * 4), Math.floor(Math.random() * 4)];
 
 function main() {
   const canvas = document.querySelector("#glCanvas");
@@ -135,68 +135,68 @@ function generateObstacleData() {
   // Generate obstacle vertices and append them to the verticeCoords array
   const verticeCoords = [
     // Top hole front face
+    -1.5, 0.33, -tunnelSegmentLength+0.25,
+    -1.5, -1.5, -tunnelSegmentLength+0.25,
+    1.5, -1.5, -tunnelSegmentLength+0.25,
+    1.5, 0.33, -tunnelSegmentLength+0.25,
+    // Top hole back face
     -1.5, 0.33, -tunnelSegmentLength,
     -1.5, -1.5, -tunnelSegmentLength,
     1.5, -1.5, -tunnelSegmentLength,
     1.5, 0.33, -tunnelSegmentLength,
-    // Top hole back face
-    -1.5, 0.33, -tunnelSegmentLength-0.25,
-    -1.5, -1.5, -tunnelSegmentLength-0.25,
-    1.5, -1.5, -tunnelSegmentLength-0.25,
-    1.5, 0.33, -tunnelSegmentLength-0.25,
     // Top hole top face
-    -1.5, 0.33, -tunnelSegmentLength-0.25,
     -1.5, 0.33, -tunnelSegmentLength,
+    -1.5, 0.33, -tunnelSegmentLength+0.25,
+    1.5, 0.33, -tunnelSegmentLength+0.25,
     1.5, 0.33, -tunnelSegmentLength,
-    1.5, 0.33, -tunnelSegmentLength-0.25,
 
     // Bottom hole front face
+    -1.5, 1.5, -tunnelSegmentLength+0.25,
+    -1.5, -0.33, -tunnelSegmentLength+0.25,
+    1.5, -0.33, -tunnelSegmentLength+0.25,
+    1.5, 1.5, -tunnelSegmentLength+0.25,
+    // Bottom hole back face
     -1.5, 1.5, -tunnelSegmentLength,
     -1.5, -0.33, -tunnelSegmentLength,
     1.5, -0.33, -tunnelSegmentLength,
     1.5, 1.5, -tunnelSegmentLength,
-    // Bottom hole back face
-    -1.5, 1.5, -tunnelSegmentLength-0.25,
-    -1.5, -0.33, -tunnelSegmentLength-0.25,
-    1.5, -0.33, -tunnelSegmentLength-0.25,
-    1.5, 1.5, -tunnelSegmentLength-0.25,
     // Bottom hole bottom face
-    -1.5, -0.33, -tunnelSegmentLength-0.25,
     -1.5, -0.33, -tunnelSegmentLength,
+    -1.5, -0.33, -tunnelSegmentLength+0.25,
+    1.5, -0.33, -tunnelSegmentLength+0.25,
     1.5, -0.33, -tunnelSegmentLength,
-    1.5, -0.33, -tunnelSegmentLength-0.25,
     
     // Right hole front face
+    -1.5, 1.5, -tunnelSegmentLength+0.25,
+    -1.5, -1.5, -tunnelSegmentLength+0.25,
+    0.33, -1.5, -tunnelSegmentLength+0.25,
+    0.33, 1.5, -tunnelSegmentLength+0.25,
+    // Right hole back face
     -1.5, 1.5, -tunnelSegmentLength,
     -1.5, -1.5, -tunnelSegmentLength,
     0.33, -1.5, -tunnelSegmentLength,
     0.33, 1.5, -tunnelSegmentLength,
-    // Right hole back face
-    -1.5, 1.5, -tunnelSegmentLength-0.25,
-    -1.5, -1.5, -tunnelSegmentLength-0.25,
-    0.33, -1.5, -tunnelSegmentLength-0.25,
-    0.33, 1.5, -tunnelSegmentLength-0.25,
     // Right hole right face
-    0.33, 1.5, -tunnelSegmentLength-0.25,
     0.33, 1.5, -tunnelSegmentLength,
+    0.33, 1.5, -tunnelSegmentLength+0.25,
+    0.33, -1.5, -tunnelSegmentLength+0.25,
     0.33, -1.5, -tunnelSegmentLength,
-    0.33, -1.5, -tunnelSegmentLength-0.25,
     
+    // Left hole front face
+    -0.33, 1.5, -tunnelSegmentLength+0.25,
+    -0.33, -1.5, -tunnelSegmentLength+0.25,
+    1.5, -1.5, -tunnelSegmentLength+0.25,
+    1.5, 1.5, -tunnelSegmentLength+0.25,
     // Left hole front face
     -0.33, 1.5, -tunnelSegmentLength,
     -0.33, -1.5, -tunnelSegmentLength,
     1.5, -1.5, -tunnelSegmentLength,
     1.5, 1.5, -tunnelSegmentLength,
     // Left hole front face
-    -0.33, 1.5, -tunnelSegmentLength-0.25,
-    -0.33, -1.5, -tunnelSegmentLength-0.25,
-    1.5, -1.5, -tunnelSegmentLength-0.25,
-    1.5, 1.5, -tunnelSegmentLength-0.25,
-    // Left hole front face
-    -0.33, -1.5, -tunnelSegmentLength-0.25,
     -0.33, -1.5, -tunnelSegmentLength,
-    -0.33, 1.5, -tunnelSegmentLength,
-    -0.33, 1.5, -tunnelSegmentLength-0.25
+    -0.33, -1.5, -tunnelSegmentLength+0.25,
+    -0.33, 1.5, -tunnelSegmentLength+0.25,
+    -0.33, 1.5, -tunnelSegmentLength
   ];
 
   //Generate color data and append it to the textureCoords array
@@ -216,7 +216,7 @@ function generateObstacleData() {
   ];
 
   //Generate connections between vertices
-  const squareIndices = generateObstacleIndices(2*3);
+  const squareIndices = generateObstacleIndices(3);
 
   return {
     verticeCoords: verticeCoords,
@@ -288,7 +288,7 @@ function drawObstacles(gl, programInfo, buffers) {
   //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
   // Create the perspective matrix
-  const fieldOfView = 60 * Math.PI / 180;   // in radians
+  const fieldOfView = 45 * Math.PI / 180;   // in radians
   const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
   const zNear = 0.01;
   const zFar = 3*tunnelSegmentLength;
@@ -328,7 +328,7 @@ function drawObstacles(gl, programInfo, buffers) {
     const normalize = false;  // don't normalize
     const stride = 0;         // how many bytes to get from one set of values to the next
                               // 0 = use type and numComponents above
-    const offset = 0;         // how many bytes inside the buffer to start from
+    const offset = 4 * 12 * 3 * obstacles[0];         // how many bytes inside the buffer to start from
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
     gl.vertexAttribPointer(
         programInfo.attribLocations.vertexPosition,
@@ -344,7 +344,7 @@ function drawObstacles(gl, programInfo, buffers) {
   // Tell WebGL how to pull out the colors from the texture buffer
   // into the vertexColor attribute.
   {
-    const num = 4; // every coordinate composed of 2 values
+    const num = 4; // every coordinate composed of 4 values
     const type = gl.FLOAT; // the data in the buffer is 32 bit float
     const normalize = false; // don't normalize
     const stride = 0; // how many bytes to get from one set to the next
@@ -373,6 +373,7 @@ function drawObstacles(gl, programInfo, buffers) {
   // Tell WebGL fogging info
   gl.uniform1f (programInfo.uniformLocations.view_distance, tunnelSegmentLength);
 
+  // Draw the first obstacle
   {
     const vertexCount = 18;
     const type = gl.UNSIGNED_SHORT;
@@ -380,6 +381,7 @@ function drawObstacles(gl, programInfo, buffers) {
     gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
   }
 
+  // Move the camera so the second obstacle is drawn further back
   glMatrix.mat4.translate(modelViewMatrix,     // destination matrix
                  modelViewMatrix,     // matrix to translate
                  [0, 0, -tunnelSegmentLength]);  // amount to translate
@@ -388,12 +390,34 @@ function drawObstacles(gl, programInfo, buffers) {
       false,
       modelViewMatrix);
 
+  //Set the offset to the second obstacle
+  {
+    const numComponents = 3;  // pull out 3 values per iteration
+    const type = gl.FLOAT;    // the data in the buffer is 32bit floats
+    const normalize = false;  // don't normalize
+    const stride = 0;         // how many bytes to get from one set of values to the next
+                              // 0 = use type and numComponents above
+    const offset = 4 * 12 * 3 * obstacles[1];         // how many bytes inside the buffer to start from
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+    gl.vertexAttribPointer(
+        programInfo.attribLocations.vertexPosition,
+        numComponents,
+        type,
+        normalize,
+        stride,
+        offset);
+    gl.enableVertexAttribArray(
+        programInfo.attribLocations.vertexPosition);
+  }
+
+  // Draw the second obstacle
   {
     const vertexCount = 18;
     const type = gl.UNSIGNED_SHORT;
     const offset = 0;
     gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
   }
+  
 }
 
 
@@ -479,10 +503,10 @@ function drawTunnel(gl, programInfo, buffers, texture) {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
   // Create the perspective matrix
-  const fieldOfView = 60 * Math.PI / 180;   // in radians
+  const fieldOfView = 45 * Math.PI / 180;   // in radians
   const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
   const zNear = 0.01;
-  const zFar = 4*tunnelSegmentLength;
+  const zFar = 3*tunnelSegmentLength;
   const projectionMatrix = glMatrix.mat4.create();
   glMatrix.mat4.perspective(projectionMatrix,
                    fieldOfView,
@@ -570,6 +594,8 @@ function drawTunnel(gl, programInfo, buffers, texture) {
       false,
       modelViewMatrix);
 
+
+
   {
     const vertexCount = 96*4;
     const type = gl.UNSIGNED_SHORT;
@@ -584,7 +610,9 @@ function drawTunnel(gl, programInfo, buffers, texture) {
   if (locationZ >= travelDistance) {
     locationZ -= travelDistance;
     // Reset obstacle positions
-    console.log("location reset");
+    obstacles[0] = obstacles[1];
+    obstacles[1] = Math.floor(Math.random() * 4);
+    //console.log("location reset");
 
   }
 
@@ -621,7 +649,7 @@ function drawIntro(gl, programInfo, buffers, texture) {
   const fieldOfView = 45 * Math.PI / 180;   // in radians
   const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
   const zNear = 0.1;
-  const zFar = 100.0;
+  const zFar = 3*tunnelSegmentLength;
   const projectionMatrix = glMatrix.mat4.create();
 
   // note: glmatrix.js always has the first argument
