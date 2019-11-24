@@ -10,6 +10,7 @@ var konec = true;
 var tunnelSegmentLength = 0;
 var travelDistance = 0;
 var obstacles = [Math.floor(Math.random() * 4), Math.floor(Math.random() * 4)];
+var flatContext;
 
 function main() {
   const canvas = document.querySelector("#glCanvas");
@@ -21,6 +22,13 @@ function main() {
     alert("Unable to initialize WebGL. Your browser or machine may not support it.");
     return;
   }
+
+  // 2D elements
+  const flatCanvas = document.querySelector("#flatCanvas");
+  flatContext = flatCanvas.getContext("2d");
+
+  // Clear the 2D canvas
+  flatContext.clearRect(0, 0, flatContext.canvas.width, flatContext.canvas.height);
 
   // Audio
 
@@ -73,15 +81,21 @@ function main() {
   renderIntro(gl, tunnelProgram, intro_buffers, intro_texture);
 
   // Implement mouse tracking
-  canvas.onclick = function() {
-    canvas.requestPointerLock();
+  flatCanvas.onclick = function() {
+    // Start the game
+    flatCanvas.requestPointerLock();
     document.addEventListener("mousemove", updatePosition, false);
     if (konec) {
       konec = false;
       xRotation = 0;
       yRotation = 0;
-      //render();
     }
+
+    // Draw the crosshair
+    flatContext.strokeStyle = 'white';
+    flatContext.beginPath();
+    flatContext.arc(flatContext.canvas.width/2, flatContext.canvas.height/2, 3, 0, 2 * Math.PI);
+    flatContext.stroke(); 
   }
 
 
@@ -659,10 +673,10 @@ function endGame() {
   locationZ = 0;
   xRotation = 0;
   yRotation = 0;
-  document.removeEventListener("mousemove", updatePosition, false);
   // Reset obstacles
   obstacles = [Math.floor(Math.random() * 4), Math.floor(Math.random() * 4)];
-
+  // Clear the HUD
+  flatContext.clearRect(0, 0, flatContext.canvas.width, flatContext.canvas.height);
 }
 
 
