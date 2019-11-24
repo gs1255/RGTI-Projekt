@@ -9,7 +9,7 @@ var locationZ = 0;
 var konec = true;
 var tunnelSegmentLength = 0;
 var travelDistance = 0;
-var obstacles = [Math.floor(Math.random() * 4), Math.floor(Math.random() * 4)];
+var obstacles = [Math.floor(Math.random() * 6), Math.floor(Math.random() * 6)];
 var flatContext;
 
 function main() {
@@ -210,7 +210,70 @@ function generateObstacleData() {
     -0.33, -1.5, -tunnelSegmentLength,
     -0.33, -1.5, -tunnelSegmentLength+0.25,
     -0.33, 1.5, -tunnelSegmentLength+0.25,
-    -0.33, 1.5, -tunnelSegmentLength
+    -0.33, 1.5, -tunnelSegmentLength,
+
+    // Horizontal hole top front
+    -1.5, 1.5, -tunnelSegmentLength+0.25,
+    -1.5, 0.33, -tunnelSegmentLength+0.25,
+    1.5, 0.33, -tunnelSegmentLength+0.25,
+    1.5, 1.5, -tunnelSegmentLength+0.25,
+    // Horizontal hole top back
+    -1.5, 1.5, -tunnelSegmentLength,
+    -1.5, 0.33, -tunnelSegmentLength,
+    1.5, 0.33, -tunnelSegmentLength,
+    1.5, 1.5, -tunnelSegmentLength,
+    // Horizontal hole top cover
+    -1.5, 0.33, -tunnelSegmentLength,
+    -1.5, 0.33, -tunnelSegmentLength+0.25,
+    1.5, 0.33, -tunnelSegmentLength+0.25,
+    1.5, 0.33, -tunnelSegmentLength,
+    // Horizontal hole bottom front
+    -1.5, -1.5, -tunnelSegmentLength+0.25,
+    -1.5, -0.33, -tunnelSegmentLength+0.25,
+    1.5, -0.33, -tunnelSegmentLength+0.25,
+    1.5, -1.5, -tunnelSegmentLength+0.25,
+    // Horizontal hole bottom back
+    -1.5, -1.5, -tunnelSegmentLength,
+    -1.5, -0.33, -tunnelSegmentLength,
+    1.5, -0.33, -tunnelSegmentLength,
+    1.5, -1.5, -tunnelSegmentLength,
+    // Horizontal hole bottom cover
+    -1.5, -0.33, -tunnelSegmentLength,
+    -1.5, -0.33, -tunnelSegmentLength+0.25,
+    1.5, -0.33, -tunnelSegmentLength+0.25,
+    1.5, -0.33, -tunnelSegmentLength,
+
+    // Vertical hole left front
+    -1.5, 1.5, -tunnelSegmentLength+0.25,
+    -1.5, -1.5, -tunnelSegmentLength+0.25,
+    -0.33, -1.5, -tunnelSegmentLength+0.25,
+    -0.33, 1.5, -tunnelSegmentLength+0.25,
+    // Vertical hole left back
+    -1.5, 1.5, -tunnelSegmentLength,
+    -1.5, -1.5, -tunnelSegmentLength,
+    -0.33, -1.5, -tunnelSegmentLength,
+    -0.33, 1.5, -tunnelSegmentLength,
+    // Vertical hole left cover
+    -0.33, 1.5, -tunnelSegmentLength,
+    -0.33, -1.5, -tunnelSegmentLength,
+    -0.33, -1.5, -tunnelSegmentLength+0.25,
+    -0.33, 1.5, -tunnelSegmentLength+0.25,
+    // Vertical hole right front
+    0.33, 1.5, -tunnelSegmentLength+0.25,
+    0.33, -1.5, -tunnelSegmentLength+0.25,
+    1.5, -1.5, -tunnelSegmentLength+0.25,
+    1.5, 1.5, -tunnelSegmentLength+0.25,
+    // Vertical hole right back
+    0.33, 1.5, -tunnelSegmentLength,
+    0.33, -1.5, -tunnelSegmentLength,
+    1.5, -1.5, -tunnelSegmentLength,
+    1.5, 1.5, -tunnelSegmentLength,
+    // Vertical hole right cover
+    0.33, 1.5, -tunnelSegmentLength,
+    0.33, -1.5, -tunnelSegmentLength,
+    0.33, -1.5, -tunnelSegmentLength+0.25,
+    0.33, 1.5, -tunnelSegmentLength+0.25
+
   ];
 
   //Generate color data and append it to the textureCoords array
@@ -226,11 +289,47 @@ function generateObstacleData() {
     1.0,  0.0,  0.0,  1.0,
     1.0,  0.0,  0.0,  1.0,
     1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
+    1.0,  0.0,  0.0,  1.0,
     1.0,  0.0,  0.0,  1.0
   ];
 
   //Generate connections between vertices
-  const squareIndices = generateObstacleIndices(3);
+  const squareIndices = generateObstacleIndices(12);
 
   return {
     verticeCoords: verticeCoords,
@@ -342,7 +441,10 @@ function drawObstacles(gl, programInfo, buffers) {
     const normalize = false;  // don't normalize
     const stride = 0;         // how many bytes to get from one set of values to the next
                               // 0 = use type and numComponents above
-    const offset = 4 * 12 * 3 * obstacles[0];         // how many bytes inside the buffer to start from
+    var offset = 4 * 12 * 3 * obstacles[0];         // how many bytes inside the buffer to start from
+    if (obstacles[0] == 5) {
+      offset = 4 * 12 * 3 * 4 + 4 * 24 * 3;
+    }
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
     gl.vertexAttribPointer(
         programInfo.attribLocations.vertexPosition,
@@ -389,7 +491,10 @@ function drawObstacles(gl, programInfo, buffers) {
 
   // Draw the first obstacle
   {
-    const vertexCount = 18;
+    var vertexCount = 18;
+    if (obstacles[0] == 4 || obstacles[0] == 5) {
+      vertexCount = 36;
+    }
     const type = gl.UNSIGNED_SHORT;
     const offset = 0;
     gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
@@ -411,7 +516,10 @@ function drawObstacles(gl, programInfo, buffers) {
     const normalize = false;  // don't normalize
     const stride = 0;         // how many bytes to get from one set of values to the next
                               // 0 = use type and numComponents above
-    const offset = 4 * 12 * 3 * obstacles[1];         // how many bytes inside the buffer to start from
+    var offset = 4 * 12 * 3 * obstacles[1];         // how many bytes inside the buffer to start from
+    if (obstacles[1] == 5) {
+      offset = 4 * 12 * 3 * 4 + 4 * 24 * 3;
+    }
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
     gl.vertexAttribPointer(
         programInfo.attribLocations.vertexPosition,
@@ -426,7 +534,10 @@ function drawObstacles(gl, programInfo, buffers) {
 
   // Draw the second obstacle
   {
-    const vertexCount = 18;
+    var vertexCount = 18;
+    if (obstacles[1] == 4 || obstacles[1] == 5) {
+      vertexCount = 36;
+    }
     const type = gl.UNSIGNED_SHORT;
     const offset = 0;
     gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
@@ -625,7 +736,7 @@ function drawTunnel(gl, programInfo, buffers, texture) {
     locationZ -= travelDistance;
     // Reset obstacle positions
     obstacles[0] = obstacles[1];
-    obstacles[1] = Math.floor(Math.random() * 4);
+    obstacles[1] = Math.floor(Math.random() * 6);
     //console.log("location reset");
 
   }
@@ -660,6 +771,16 @@ function drawTunnel(gl, programInfo, buffers, texture) {
           endGame();
         }
         break;
+      case 4:
+        if (locationY > 0.33 || locationY < -0.33) {
+          endGame();
+        }
+        break;
+      case 5:
+        if (locationX > 0.33 || locationX < -0.33) {
+          endGame();
+        }
+        break;
     }
 
     
@@ -674,7 +795,7 @@ function endGame() {
   xRotation = 0;
   yRotation = 0;
   // Reset obstacles
-  obstacles = [Math.floor(Math.random() * 4), Math.floor(Math.random() * 4)];
+  obstacles = [Math.floor(Math.random() * 6), Math.floor(Math.random() * 6)];
   // Clear the HUD
   flatContext.clearRect(0, 0, flatContext.canvas.width, flatContext.canvas.height);
 }
