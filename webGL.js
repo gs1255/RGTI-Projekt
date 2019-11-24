@@ -152,130 +152,130 @@ function generateObstacleData() {
   // Generate obstacle vertices and append them to the verticeCoords array
   const verticeCoords = [
     // Top hole front face
+    -1.5, 0.33, -tunnelSegmentLength+0.5,
+    -1.5, -1.5, -tunnelSegmentLength+0.5,
+    1.5, -1.5, -tunnelSegmentLength+0.5,
+    1.5, 0.33, -tunnelSegmentLength+0.5,
+    // Top hole back face
     -1.5, 0.33, -tunnelSegmentLength+0.25,
     -1.5, -1.5, -tunnelSegmentLength+0.25,
     1.5, -1.5, -tunnelSegmentLength+0.25,
     1.5, 0.33, -tunnelSegmentLength+0.25,
-    // Top hole back face
-    -1.5, 0.33, -tunnelSegmentLength,
-    -1.5, -1.5, -tunnelSegmentLength,
-    1.5, -1.5, -tunnelSegmentLength,
-    1.5, 0.33, -tunnelSegmentLength,
     // Top hole top face
-    -1.5, 0.33, -tunnelSegmentLength,
     -1.5, 0.33, -tunnelSegmentLength+0.25,
+    -1.5, 0.33, -tunnelSegmentLength+0.5,
+    1.5, 0.33, -tunnelSegmentLength+0.5,
     1.5, 0.33, -tunnelSegmentLength+0.25,
-    1.5, 0.33, -tunnelSegmentLength,
 
     // Bottom hole front face
+    -1.5, 1.5, -tunnelSegmentLength+0.5,
+    -1.5, -0.33, -tunnelSegmentLength+0.5,
+    1.5, -0.33, -tunnelSegmentLength+0.5,
+    1.5, 1.5, -tunnelSegmentLength+0.5,
+    // Bottom hole back face
     -1.5, 1.5, -tunnelSegmentLength+0.25,
     -1.5, -0.33, -tunnelSegmentLength+0.25,
     1.5, -0.33, -tunnelSegmentLength+0.25,
     1.5, 1.5, -tunnelSegmentLength+0.25,
-    // Bottom hole back face
-    -1.5, 1.5, -tunnelSegmentLength,
-    -1.5, -0.33, -tunnelSegmentLength,
-    1.5, -0.33, -tunnelSegmentLength,
-    1.5, 1.5, -tunnelSegmentLength,
     // Bottom hole bottom face
-    -1.5, -0.33, -tunnelSegmentLength,
     -1.5, -0.33, -tunnelSegmentLength+0.25,
+    -1.5, -0.33, -tunnelSegmentLength+0.5,
+    1.5, -0.33, -tunnelSegmentLength+0.5,
     1.5, -0.33, -tunnelSegmentLength+0.25,
-    1.5, -0.33, -tunnelSegmentLength,
     
     // Right hole front face
+    -1.5, 1.5, -tunnelSegmentLength+0.5,
+    -1.5, -1.5, -tunnelSegmentLength+0.5,
+    0.33, -1.5, -tunnelSegmentLength+0.5,
+    0.33, 1.5, -tunnelSegmentLength+0.5,
+    // Right hole back face
     -1.5, 1.5, -tunnelSegmentLength+0.25,
     -1.5, -1.5, -tunnelSegmentLength+0.25,
     0.33, -1.5, -tunnelSegmentLength+0.25,
     0.33, 1.5, -tunnelSegmentLength+0.25,
-    // Right hole back face
-    -1.5, 1.5, -tunnelSegmentLength,
-    -1.5, -1.5, -tunnelSegmentLength,
-    0.33, -1.5, -tunnelSegmentLength,
-    0.33, 1.5, -tunnelSegmentLength,
     // Right hole right face
-    0.33, 1.5, -tunnelSegmentLength,
     0.33, 1.5, -tunnelSegmentLength+0.25,
+    0.33, 1.5, -tunnelSegmentLength+0.5,
+    0.33, -1.5, -tunnelSegmentLength+0.5,
     0.33, -1.5, -tunnelSegmentLength+0.25,
-    0.33, -1.5, -tunnelSegmentLength,
     
     // Left hole front face
+    -0.33, 1.5, -tunnelSegmentLength+0.5,
+    -0.33, -1.5, -tunnelSegmentLength+0.5,
+    1.5, -1.5, -tunnelSegmentLength+0.5,
+    1.5, 1.5, -tunnelSegmentLength+0.5,
+    // Left hole front face
     -0.33, 1.5, -tunnelSegmentLength+0.25,
     -0.33, -1.5, -tunnelSegmentLength+0.25,
     1.5, -1.5, -tunnelSegmentLength+0.25,
     1.5, 1.5, -tunnelSegmentLength+0.25,
     // Left hole front face
-    -0.33, 1.5, -tunnelSegmentLength,
-    -0.33, -1.5, -tunnelSegmentLength,
-    1.5, -1.5, -tunnelSegmentLength,
-    1.5, 1.5, -tunnelSegmentLength,
-    // Left hole front face
-    -0.33, -1.5, -tunnelSegmentLength,
     -0.33, -1.5, -tunnelSegmentLength+0.25,
+    -0.33, -1.5, -tunnelSegmentLength+0.5,
+    -0.33, 1.5, -tunnelSegmentLength+0.5,
     -0.33, 1.5, -tunnelSegmentLength+0.25,
-    -0.33, 1.5, -tunnelSegmentLength,
 
     // Horizontal hole top front
+    -1.5, 1.5, -tunnelSegmentLength+0.5,
+    -1.5, 0.33, -tunnelSegmentLength+0.5,
+    1.5, 0.33, -tunnelSegmentLength+0.5,
+    1.5, 1.5, -tunnelSegmentLength+0.5,
+    // Horizontal hole top back
     -1.5, 1.5, -tunnelSegmentLength+0.25,
     -1.5, 0.33, -tunnelSegmentLength+0.25,
     1.5, 0.33, -tunnelSegmentLength+0.25,
     1.5, 1.5, -tunnelSegmentLength+0.25,
-    // Horizontal hole top back
-    -1.5, 1.5, -tunnelSegmentLength,
-    -1.5, 0.33, -tunnelSegmentLength,
-    1.5, 0.33, -tunnelSegmentLength,
-    1.5, 1.5, -tunnelSegmentLength,
     // Horizontal hole top cover
-    -1.5, 0.33, -tunnelSegmentLength,
     -1.5, 0.33, -tunnelSegmentLength+0.25,
+    -1.5, 0.33, -tunnelSegmentLength+0.5,
+    1.5, 0.33, -tunnelSegmentLength+0.5,
     1.5, 0.33, -tunnelSegmentLength+0.25,
-    1.5, 0.33, -tunnelSegmentLength,
     // Horizontal hole bottom front
+    -1.5, -1.5, -tunnelSegmentLength+0.5,
+    -1.5, -0.33, -tunnelSegmentLength+0.5,
+    1.5, -0.33, -tunnelSegmentLength+0.5,
+    1.5, -1.5, -tunnelSegmentLength+0.5,
+    // Horizontal hole bottom back
     -1.5, -1.5, -tunnelSegmentLength+0.25,
     -1.5, -0.33, -tunnelSegmentLength+0.25,
     1.5, -0.33, -tunnelSegmentLength+0.25,
     1.5, -1.5, -tunnelSegmentLength+0.25,
-    // Horizontal hole bottom back
-    -1.5, -1.5, -tunnelSegmentLength,
-    -1.5, -0.33, -tunnelSegmentLength,
-    1.5, -0.33, -tunnelSegmentLength,
-    1.5, -1.5, -tunnelSegmentLength,
     // Horizontal hole bottom cover
-    -1.5, -0.33, -tunnelSegmentLength,
     -1.5, -0.33, -tunnelSegmentLength+0.25,
+    -1.5, -0.33, -tunnelSegmentLength+0.5,
+    1.5, -0.33, -tunnelSegmentLength+0.5,
     1.5, -0.33, -tunnelSegmentLength+0.25,
-    1.5, -0.33, -tunnelSegmentLength,
 
     // Vertical hole left front
+    -1.5, 1.5, -tunnelSegmentLength+0.5,
+    -1.5, -1.5, -tunnelSegmentLength+0.5,
+    -0.33, -1.5, -tunnelSegmentLength+0.5,
+    -0.33, 1.5, -tunnelSegmentLength+0.5,
+    // Vertical hole left back
     -1.5, 1.5, -tunnelSegmentLength+0.25,
     -1.5, -1.5, -tunnelSegmentLength+0.25,
     -0.33, -1.5, -tunnelSegmentLength+0.25,
     -0.33, 1.5, -tunnelSegmentLength+0.25,
-    // Vertical hole left back
-    -1.5, 1.5, -tunnelSegmentLength,
-    -1.5, -1.5, -tunnelSegmentLength,
-    -0.33, -1.5, -tunnelSegmentLength,
-    -0.33, 1.5, -tunnelSegmentLength,
     // Vertical hole left cover
-    -0.33, 1.5, -tunnelSegmentLength,
-    -0.33, -1.5, -tunnelSegmentLength,
-    -0.33, -1.5, -tunnelSegmentLength+0.25,
     -0.33, 1.5, -tunnelSegmentLength+0.25,
+    -0.33, -1.5, -tunnelSegmentLength+0.25,
+    -0.33, -1.5, -tunnelSegmentLength+0.5,
+    -0.33, 1.5, -tunnelSegmentLength+0.5,
     // Vertical hole right front
+    0.33, 1.5, -tunnelSegmentLength+0.5,
+    0.33, -1.5, -tunnelSegmentLength+0.5,
+    1.5, -1.5, -tunnelSegmentLength+0.5,
+    1.5, 1.5, -tunnelSegmentLength+0.5,
+    // Vertical hole right back
     0.33, 1.5, -tunnelSegmentLength+0.25,
     0.33, -1.5, -tunnelSegmentLength+0.25,
     1.5, -1.5, -tunnelSegmentLength+0.25,
     1.5, 1.5, -tunnelSegmentLength+0.25,
-    // Vertical hole right back
-    0.33, 1.5, -tunnelSegmentLength,
-    0.33, -1.5, -tunnelSegmentLength,
-    1.5, -1.5, -tunnelSegmentLength,
-    1.5, 1.5, -tunnelSegmentLength,
     // Vertical hole right cover
-    0.33, 1.5, -tunnelSegmentLength,
-    0.33, -1.5, -tunnelSegmentLength,
+    0.33, 1.5, -tunnelSegmentLength+0.25,
     0.33, -1.5, -tunnelSegmentLength+0.25,
-    0.33, 1.5, -tunnelSegmentLength+0.25
+    0.33, -1.5, -tunnelSegmentLength+0.5,
+    0.33, 1.5, -tunnelSegmentLength+0.5
 
   ];
 
@@ -759,16 +759,22 @@ function drawTunnel(gl, programInfo, buffers, texture) {
   // HUD base
   flatContext.fillStyle = 'black';
   flatContext.beginPath();
-  flatContext.moveTo(0, 460);
-  flatContext.moveTo(50, 460);
-  flatContext.moveTo(70, 470);
-  flatContext.moveTo(570, 470);
-  flatContext.moveTo(590, 460);
-  flatContext.moveTo(640, 460);
-
-
-
-
+  flatContext.moveTo(0, 450);
+  flatContext.lineTo(220, 450);
+  flatContext.lineTo(240, 470);
+  flatContext.lineTo(440, 470);
+  flatContext.lineTo(460, 450);
+  flatContext.lineTo(640, 450);
+  flatContext.lineTo(640, 480);
+  flatContext.lineTo(0, 480);
+  flatContext.lineTo(0, 450);
+  flatContext.fill();
+  flatContext.stroke();
+  // Score and speed
+  flatContext.fillStyle = 'white';
+  flatContext.font = 'bold 16px PressStart';
+  flatContext.fillText("Score: " + score, 10, 475);
+  flatContext.fillText("Speed: " + Math.floor(speed * 1000), 460, 475);
 
   // Tunnel collision detection
   if (Math.sqrt(Math.pow(locationX, 2) + Math.pow(locationY, 2)) > 1) {
@@ -777,7 +783,7 @@ function drawTunnel(gl, programInfo, buffers, texture) {
   }
 
   // Obstacle collision detection
-  if (locationZ >= tunnelSegmentLength-0.25) {
+  if (locationZ >= tunnelSegmentLength-0.5) {
     switch(obstacles[0]) {
       case 0:
         if (locationY > -0.33) {
