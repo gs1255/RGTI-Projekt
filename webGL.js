@@ -114,7 +114,7 @@ function generateTunnelData () {
   // Generate tunnel vertices and append them to the verticeCoords array
   const verticeCoords = generateTunnelSegments(4);
   tunnelSegmentLength = -verticeCoords[5];
-  console.log(tunnelSegmentLength);
+  //console.log(tunnelSegmentLength);
   travelDistance = tunnelSegmentLength;
 
   //Generate texture data and append it to the textureCoords array
@@ -616,15 +616,52 @@ function drawTunnel(gl, programInfo, buffers, texture) {
 
   }
 
-  // Collision detection
+  // Tunnel collision detection
   if (Math.sqrt(Math.pow(locationX, 2) + Math.pow(locationY, 2)) > 1) {
-    konec = true;
-    locationX = 0;
-    locationY = 0;
-    locationZ = 0;
-    xRotation = 0;
-    yRotation = 0;
+    // Stop the game and reset game variables
+    endGame();
   }
+
+  // Obstacle collision detection
+  if (locationZ >= tunnelSegmentLength-0.25) {
+    
+    switch(obstacles[0]) {
+      case 0:
+        if (locationY > -0.33) {
+          endGame();
+        }
+        break;
+      case 1:
+        if (locationY < 0.33) {
+          endGame();
+        }
+        break;
+      case 2:
+        if (locationX > -0.33) {
+          endGame();
+        }
+        break;
+      case 3:
+        if (locationX < 0.33) {
+          endGame();
+        }
+        break;
+    }
+
+    
+  }
+}
+
+function endGame() {
+  konec = true;
+  locationX = 0;
+  locationY = 0;
+  locationZ = 0;
+  xRotation = 0;
+  yRotation = 0;
+  document.removeEventListener("mousemove", updatePosition, false);
+  // Reset obstacles
+  obstacles = [Math.floor(Math.random() * 4), Math.floor(Math.random() * 4)];
 
 }
 
