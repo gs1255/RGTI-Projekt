@@ -57,7 +57,7 @@ function main() {
   flatContext.fillRect(0, 0, flatContext.canvas.width, flatContext.canvas.height);
   flatContext.fillStyle = 'gray';
   flatContext.font = 'bold 40px PressStart';
-  flatContext.fillText("LOADING", 60, 100);
+  flatContext.fillText("LOADING", 160, 260);
 
   // Load death sound
   audioCtx = window.AudioContext || window.webkitAudioContext;
