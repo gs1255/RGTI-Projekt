@@ -13,12 +13,33 @@ var konec = true;
 var tunnelSegmentLength = 0;
 var travelDistance = 0;
 var obstacles = [Math.floor(Math.random() * 6), Math.floor(Math.random() * 6)];
+
+// 2D Canvas variables
 var flatContext;
+
+// Audio variables
+var audioCtx;
+var audioContext;
+var audioBuffer;
+var audioSource;
+var audioLoaded = false;
+var deathSound;
+var deathBuffer;
+
+// WebGL variables
+var gl;
+var tunnel_texture;
+var tunnelShaderProgram;
+var obstacleShaderProgram;
+var tunnelProgram;
+var obstacleProgram;
+var tunnel_buffers;
+var obstacle_buffers;
 
 function main() {
   const canvas = document.querySelector("#glCanvas");
   // Initialize the GL context
-  const gl = canvas.getContext("webgl");
+  gl = canvas.getContext("webgl");
 
   // Only continue if WebGL is available and working
   if (gl === null) {
@@ -30,21 +51,62 @@ function main() {
   const flatCanvas = document.querySelector("#flatCanvas");
   flatContext = flatCanvas.getContext("2d");
 
-  // Clear the 2D canvas
+  // Draw the loading screen
   flatContext.clearRect(0, 0, flatContext.canvas.width, flatContext.canvas.height);
+  flatContext.fillStyle = 'black';
+  flatContext.fillRect(0, 0, flatContext.canvas.width, flatContext.canvas.height);
+  flatContext.fillStyle = 'gray';
+  flatContext.font = 'bold 40px PressStart';
+  flatContext.fillText("LOADING", 60, 100);
 
-  // Audio
+  // Load death sound
+  audioCtx = window.AudioContext || window.webkitAudioContext;
+  audioContext = new AudioContext();
+  
+  var requestD = new XMLHttpRequest();
+  requestD.open('GET', "death_sound.wav", true);
+  requestD.responseType = 'arraybuffer';
+  requestD.onload = function() {
+    audioContext.decodeAudioData(requestD.response, function(buffer) {
+      deathBuffer = buffer;
+      deathSound = audioContext.createBufferSource();
+      deathSound.buffer = deathBuffer;
+      deathSound.connect(audioContext.destination);
+    }, function () {console.log("Audio error")});
+  }
+  requestD.send();
+  
+
+  // Load tunnel audio
+  //audioCtx = window.AudioContext || window.webkitAudioContext;
+  //audioContext = new AudioContext();
+  var requestT = new XMLHttpRequest();
+  requestT.open('GET', "tunnel_sound.wav", true);
+  requestT.responseType = 'arraybuffer';
+  requestT.onload = function() {
+    audioContext.decodeAudioData(requestT.response, function(buffer) {
+      audioBuffer = buffer;
+      loadAudio(audioBuffer);
+      audioSource.loop = true;
+      flatCanvas.onclick = startGame;
+      // When it finishes loading, load the intro screen
+      renderIntro();
+    }, function () {console.log("Audio error")});
+  }
+  requestT.send();
+
+
 
 
   // Load textures
-  const tunnel_texture = loadTexture(gl, 'tunnel_texture3.png');
+  tunnel_texture = loadTexture(gl, 'tunnel_texture3.png');
 
   // Create shaders
-  const tunnelShaderProgram = initShaderProgram(gl, vsSource, fsSource);
-  const obstacleShaderProgram = initShaderProgram(gl, obstacleVertexShader, obstacleFragmentShader);
+  tunnelShaderProgram = initShaderProgram(gl, vsSource, fsSource);
+  obstacleShaderProgram = initShaderProgram(gl, obstacleVertexShader, obstacleFragmentShader);
 
   // Store program info
-  const tunnelProgram = {
+  tunnelProgram = {
     program: tunnelShaderProgram,
     attribLocations: {
       vertexPosition: gl.getAttribLocation(tunnelShaderProgram, 'aVertexPosition'),
@@ -57,7 +119,7 @@ function main() {
     },
   };
 
-  const obstacleProgram = {
+  obstacleProgram = {
     program: obstacleShaderProgram,
     attribLocations: {
       vertexPosition: gl.getAttribLocation(obstacleShaderProgram, 'aVertexPosition'),
@@ -74,62 +136,66 @@ function main() {
 
   // initialize buffers
   const tunnel_data = generateTunnelData();
-  const tunnel_buffers = initializeTunnelBuffers(gl, tunnel_data.verticeCoords, tunnel_data.textureCoords, tunnel_data.squareIndices);
+  tunnel_buffers = initializeTunnelBuffers(gl, tunnel_data.verticeCoords, tunnel_data.textureCoords, tunnel_data.squareIndices);
   const obstacle_data = generateObstacleData();
-  const obstacle_buffers = initializeObstacleBuffers(gl, obstacle_data.verticeCoords, obstacle_data.colorData, obstacle_data.squareIndices);
-
-  //  Load intro
-  renderIntro();
-
-  // Implement mouse tracking
-  flatCanvas.onclick = function() {
-    // Resets game variables
-    clearVars();
-    // Start the game
-    flatCanvas.requestPointerLock();
-    document.addEventListener("mousemove", updatePosition, false);
-    if (konec) {
-      konec = false;
-      xRotation = 0;
-      yRotation = 0;
-    }
-
-  }
-
-
-  // Animation functions
-  function render() {
-    drawTunnel(gl, tunnelProgram, tunnel_buffers, tunnel_texture);
-    drawObstacles(gl, obstacleProgram, obstacle_buffers);
-
-    if (!konec) {
-      requestAnimationFrame(render);
-    } else {
-      requestAnimationFrame(renderEnd);
-    }
-  }
-
-  function renderIntro() {
-    drawIntro(flatContext)
-    if (konec) {
-      requestAnimationFrame(renderIntro);
-    } else {
-      requestAnimationFrame(render);
-    }
-  }
-
-  function renderEnd() {
-    drawEnd(flatContext);
-
-    if (!konec) {
-      requestAnimationFrame(render);
-    } else {
-      requestAnimationFrame(renderEnd);
-    }
-  }
+  obstacle_buffers = initializeObstacleBuffers(gl, obstacle_data.verticeCoords, obstacle_data.colorData, obstacle_data.squareIndices);
 
 }
 
+
+// Animation functions
+function render() {
+  drawTunnel(gl, tunnelProgram, tunnel_buffers, tunnel_texture);
+  drawObstacles(gl, obstacleProgram, obstacle_buffers);
+
+  if (!konec) {
+    requestAnimationFrame(render);
+  } else {
+    requestAnimationFrame(renderEnd);
+  }
+}
+
+function renderIntro() {
+  drawIntro(flatContext)
+  if (konec) {
+    requestAnimationFrame(renderIntro);
+  } else {
+    requestAnimationFrame(render);
+  }
+}
+
+
+function renderEnd() {
+  drawEnd(flatContext);
+
+  if (!konec) {
+    requestAnimationFrame(render);
+  } else {
+    requestAnimationFrame(renderEnd);
+  }
+}
+
+
+function loadAudio(buffer) {
+  audioSource = audioContext.createBufferSource();
+  audioSource.buffer = buffer;
+  audioSource.connect(audioContext.destination);
+}
+
+
+function startGame () {
+  // Resets game variables
+  clearVars();
+  // Start the game
+  flatCanvas.requestPointerLock();
+  document.addEventListener("mousemove", updatePosition, false);
+  if (konec) {
+    konec = false;
+    xRotation = 0;
+    yRotation = 0;
+  }
+ flatCanvas.onclick = null;
+}
 
 function generateTunnelData () {
 
@@ -682,6 +748,9 @@ function drawTunnel(gl, programInfo, buffers, texture) {
   trueScore += speed;
   score = Math.floor(trueScore*10);
 
+  //Adjust audio playback rate
+  audioSource.detune.value = -1200 + speed*6000;
+
   // Redraw HUD
   flatContext.clearRect(0, 0, flatContext.canvas.width, flatContext.canvas.height);
   // Crosshair
@@ -755,8 +824,14 @@ function drawTunnel(gl, programInfo, buffers, texture) {
 
 function endGame() {
   konec = true;
+  // Stop playing audio
+  audioSource.stop();
+  //Play death sound
+  deathSound.start();
   // Clear the HUD
   flatContext.clearRect(0, 0, flatContext.canvas.width, flatContext.canvas.height);
+  // Reinstate controls
+  flatCanvas.onclick = startGame;
 }
 
 function clearVars() {
@@ -769,6 +844,18 @@ function clearVars() {
   speed = Math.log10(time)/4;
   score = 0;
   trueScore = 0;
+
+  // Reset tunnel audio
+  loadAudio(audioBuffer);
+  audioSource.loop = true;
+  audioSource.detune.value = -1200 + speed*6000;
+  audioSource.start();
+
+  // Reload death sound
+  deathSound = audioContext.createBufferSource();
+  deathSound.buffer = deathBuffer;
+  deathSound.connect(audioContext.destination);
+ 
   // Reset obstacles
   obstacles = [Math.floor(Math.random() * 6), Math.floor(Math.random() * 6)];
 }
