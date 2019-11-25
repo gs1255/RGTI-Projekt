@@ -4,8 +4,8 @@ var yRotation = 0.0;
 var mouseSensitivity = 10;
 var trueScore = 0;
 var score = trueScore;
-var time = 1;
-var speed = Math.log10(time);
+var time = 1.1;
+var speed = Math.log10(time)/4;
 var locationX = 0;
 var locationY = 0;
 var locationZ = 0;
@@ -38,7 +38,6 @@ function main() {
 
   // Load textures
   const tunnel_texture = loadTexture(gl, 'tunnel_texture3.png');
-  const intro_texture = loadTexture(gl, 'start_image.png');
 
   // Create shaders
   const tunnelShaderProgram = initShaderProgram(gl, vsSource, fsSource);
@@ -78,13 +77,14 @@ function main() {
   const tunnel_buffers = initializeTunnelBuffers(gl, tunnel_data.verticeCoords, tunnel_data.textureCoords, tunnel_data.squareIndices);
   const obstacle_data = generateObstacleData();
   const obstacle_buffers = initializeObstacleBuffers(gl, obstacle_data.verticeCoords, obstacle_data.colorData, obstacle_data.squareIndices);
-  const intro_buffers = initIntroBuffers(gl);
 
   //  Load intro
-  renderIntro(gl, tunnelProgram, intro_buffers, intro_texture);
+  renderIntro();
 
   // Implement mouse tracking
   flatCanvas.onclick = function() {
+    // Resets game variables
+    clearVars();
     // Start the game
     flatCanvas.requestPointerLock();
     document.addEventListener("mousemove", updatePosition, false);
@@ -94,15 +94,10 @@ function main() {
       yRotation = 0;
     }
 
-    // Draw the crosshair
-    flatContext.strokeStyle = 'white';
-    flatContext.beginPath();
-    flatContext.arc(flatContext.canvas.width/2, flatContext.canvas.height/2, 3, 0, 2 * Math.PI);
-    flatContext.stroke(); 
   }
 
 
-  // Animation function
+  // Animation functions
   function render() {
     drawTunnel(gl, tunnelProgram, tunnel_buffers, tunnel_texture);
     drawObstacles(gl, obstacleProgram, obstacle_buffers);
@@ -110,16 +105,26 @@ function main() {
     if (!konec) {
       requestAnimationFrame(render);
     } else {
-      requestAnimationFrame(renderIntro);
+      requestAnimationFrame(renderEnd);
     }
   }
 
   function renderIntro() {
-    drawIntro(gl, tunnelProgram, intro_buffers, intro_texture)
+    drawIntro(flatContext)
     if (konec) {
       requestAnimationFrame(renderIntro);
     } else {
       requestAnimationFrame(render);
+    }
+  }
+
+  function renderEnd() {
+    drawEnd(flatContext);
+
+    if (!konec) {
+      requestAnimationFrame(render);
+    } else {
+      requestAnimationFrame(renderEnd);
     }
   }
 
@@ -407,7 +412,7 @@ function drawObstacles(gl, programInfo, buffers) {
   const fieldOfView = 45 * Math.PI / 180;   // in radians
   const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
   const zNear = 0.01;
-  const zFar = 3*tunnelSegmentLength;
+  const zFar = 2.5*tunnelSegmentLength;
   const projectionMatrix = glMatrix.mat4.create();
   glMatrix.mat4.perspective(projectionMatrix,
                    fieldOfView,
@@ -549,78 +554,6 @@ function drawObstacles(gl, programInfo, buffers) {
 }
 
 
-
-function initIntroBuffers(gl) {
-
-  // Create a buffer for the cube's vertex positions.
-
-  const positionBuffer = gl.createBuffer();
-
-  // Select the positionBuffer as the one to apply buffer
-  // operations to from here out.
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
-  // Now create an array of positions for the cube.
-
-  const positions = [
-    // Front face
-    -4.0, -3.0,  1.0,
-     4.0, -3.0,  1.0,
-     4.0,  3.0,  1.0,
-    -4.0,  3.0,  1.0,
-  ];
-
-  // Now pass the list of positions into WebGL to build the
-  // shape. We do this by creating a Float32Array from the
-  // JavaScript array, then use it to fill the current buffer.
-
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-
-  // Now set up the texture coordinates for the faces.
-
-  const textureCoordBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
-
-  const textureCoordinates = [
-    // Front
-    0.0,  1.0,
-    1.0,  1.0,
-    1.0,  0.0,
-    0.0, 0.0
-    
-  ];
-
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates),
-                gl.STATIC_DRAW);
-
-  // Build the element array buffer; this specifies the indices
-  // into the vertex arrays for each face's vertices.
-
-  const indexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-
-  // This array defines each face as two triangles, using the
-  // indices into the vertex array to specify each triangle's
-  // position.
-
-  const indices = [
-    0,  1,  2,      0,  2,  3,    // front
-  ];
-
-  // Now send the element array to GL
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
-      new Uint16Array(indices), gl.STATIC_DRAW);
-
-  return {
-    position: positionBuffer,
-    textureCoord: textureCoordBuffer,
-    indices: indexBuffer,
-  };
-}
-
-
-// Finally draws the simple scene
 function drawTunnel(gl, programInfo, buffers, texture) {
   gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
   gl.clearDepth(1.0);                 // Clear everything
@@ -744,8 +677,8 @@ function drawTunnel(gl, programInfo, buffers, texture) {
   }
 
   // Update speed and score
-  time += 0.01;
-  speed = Math.log10(time)/5;
+  time += 0.003;
+  speed = Math.log10(time)/4;
   trueScore += speed;
   score = Math.floor(trueScore*10);
 
@@ -821,141 +754,70 @@ function drawTunnel(gl, programInfo, buffers, texture) {
 }
 
 function endGame() {
-  console.log(score);
   konec = true;
+  // Clear the HUD
+  flatContext.clearRect(0, 0, flatContext.canvas.width, flatContext.canvas.height);
+}
+
+function clearVars() {
   locationX = 0;
   locationY = 0;
   locationZ = 0;
   xRotation = 0;
   yRotation = 0;
-  time = 1;
-  speed = Math.log10(time);
+  time = 1.1;
+  speed = Math.log10(time)/4;
   score = 0;
   trueScore = 0;
   // Reset obstacles
   obstacles = [Math.floor(Math.random() * 6), Math.floor(Math.random() * 6)];
-  // Clear the HUD
-  flatContext.clearRect(0, 0, flatContext.canvas.width, flatContext.canvas.height);
 }
 
 
-function drawIntro(gl, programInfo, buffers, texture) {
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
-  gl.clearDepth(1.0);                 // Clear everything
-  gl.enable(gl.DEPTH_TEST);           // Enable depth testing
-  gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
+function drawIntro(flatContext) {
+  
+  // Clear the canvas and turn it black
+  flatContext.clearRect(0, 0, flatContext.canvas.width, flatContext.canvas.height);
+  flatContext.fillStyle = 'black';
+  flatContext.fillRect(0, 0, flatContext.canvas.width, flatContext.canvas.height);
 
-  // Clear the canvas before we start drawing on it.
+  // Draw game name
+  flatContext.fillStyle = 'white';
+  flatContext.font = 'bold 40px PressStart';
+  flatContext.fillText("TUNNEL RIDER", 60, 100);
 
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  //Draw instructions
+  flatContext.fillStyle = 'gray';
+  flatContext.font = '16px PressStart';
+  flatContext.fillText("Control the direction of flight", 80, 180);
+  flatContext.fillText("by moving your mouse.", 80, 205);
+  flatContext.fillText("Hiting the tunnel wall or an", 80, 235);
+  flatContext.fillText("obstacle ends the game.", 80, 260);
+  flatContext.fillText("Try to get as far as possible!", 80, 290);
+  flatContext.fillText("Click the screen to begin", 120, 370);
 
-  // Create a perspective matrix, a special matrix that is
-  // used to simulate the distortion of perspective in a camera.
-  // Our field of view is 45 degrees, with a width/height
-  // ratio that matches the display size of the canvas
-  // and we only want to see objects between 0.1 units
-  // and 100 units away from the camera.
 
-  const fieldOfView = 45 * Math.PI / 180;   // in radians
-  const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
-  const zNear = 0.1;
-  const zFar = 3*tunnelSegmentLength;
-  const projectionMatrix = glMatrix.mat4.create();
+}
 
-  // note: glmatrix.js always has the first argument
-  // as the destination to receive the result.
-  glMatrix.mat4.perspective(projectionMatrix,
-                   fieldOfView,
-                   aspect,
-                   zNear,
-                   zFar);
+function drawEnd(flatContext) {  
+  // Clear the canvas and turn it black
+  flatContext.clearRect(0, 0, flatContext.canvas.width, flatContext.canvas.height);
+  flatContext.fillStyle = 'black';
+  flatContext.fillRect(0, 0, flatContext.canvas.width, flatContext.canvas.height);
 
-  // Set the drawing position to the "identity" point, which is
-  // the center of the scene.
-  const modelViewMatrix = glMatrix.mat4.create();
+  // Draw game over
+  flatContext.fillStyle = 'red';
+  flatContext.font = 'bold 48px PressStart';
+  flatContext.fillText("GAME OVER", 100, 140);
 
-  // Now move the drawing position a bit to where we want to
-  // start drawing the square.
-
-  glMatrix.mat4.translate(modelViewMatrix,     // destination matrix
-                 modelViewMatrix,     // matrix to translate
-                 [-0.0, 0.0, -8.0]);  // amount to translate
-
-  // Tell WebGL how to pull out the positions from the position
-  // buffer into the vertexPosition attribute
-  {
-    const numComponents = 3;
-    const type = gl.FLOAT;
-    const normalize = false;
-    const stride = 0;
-    const offset = 0;
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
-    gl.vertexAttribPointer(
-        programInfo.attribLocations.vertexPosition,
-        numComponents,
-        type,
-        normalize,
-        stride,
-        offset);
-    gl.enableVertexAttribArray(
-        programInfo.attribLocations.vertexPosition);
-  }
-
-  // Tell WebGL how to pull out the texture coordinates from
-  // the texture coordinate buffer into the textureCoord attribute.
-  {
-    const numComponents = 2;
-    const type = gl.FLOAT;
-    const normalize = false;
-    const stride = 0;
-    const offset = 0;
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureCoord);
-    gl.vertexAttribPointer(
-        programInfo.attribLocations.textureCoord,
-        numComponents,
-        type,
-        normalize,
-        stride,
-        offset);
-    gl.enableVertexAttribArray(
-        programInfo.attribLocations.textureCoord);
-  }
-
-  // Tell WebGL which indices to use to index the vertices
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
-
-  // Tell WebGL to use our program when drawing
-
-  gl.useProgram(programInfo.program);
-
-  // Set the shader uniforms
-
-  gl.uniformMatrix4fv(
-      programInfo.uniformLocations.projectionMatrix,
-      false,
-      projectionMatrix);
-  gl.uniformMatrix4fv(
-      programInfo.uniformLocations.modelViewMatrix,
-      false,
-      modelViewMatrix);
-
-  // Specify the texture to map onto the faces.
-
-  // Tell WebGL we want to affect texture unit 0
-  gl.activeTexture(gl.TEXTURE0);
-
-  // Bind the texture to texture unit 0
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-
-  // Tell the shader we bound the texture to texture unit 0
-  gl.uniform1i(programInfo.uniformLocations.uSampler, 0);
-
-  {
-    const vertexCount = 6;
-    const type = gl.UNSIGNED_SHORT;
-    const offset = 0;
-    gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
-  }
+  //Draw score, speed...
+  flatContext.fillStyle = 'white';
+  flatContext.font = '24px PressStart';
+  flatContext.fillText("Final score: " + score, 100, 210);
+  flatContext.fillText("Final speed: " + Math.floor(speed * 1000), 100, 260);
+  flatContext.fillStyle = 'gray';
+  flatContext.font = '16px PressStart';
+  flatContext.fillText("Click the screen to try again", 95, 350);
 
 }
 
