@@ -1,3 +1,3 @@
 Font: Press Start 2P, Licence: Open Font Licence (https://fonts.google.com/specimen/Press+Start+2P)
-Sound: Rocket Thrusters sound, Licence: Sampling Plus 1.0 (https://freesound.org/people/Sergenious/sounds/55849/)
+Sound: Rocket Thrusters sound, Licence: Sampling Plus 1.0 (http://soundbible.com/1492-Rocket-Thrusters.html)
 Sound: Death sound, Licence: CC Attribution 3.0 (https://freesound.org/people/Sergenious/sounds/55849/)
